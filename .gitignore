@@ -1,0 +1,73 @@
+# --- Claude planning artifacts (NEVER commit) ---
+CLAUDE.md
+HANDOFF.md
+PLAN.md
+IDEAS.md
+GOALS.md
+MVP_SCOPE.md
+ROADMAP.md
+auto_handoff_latest.md
+.claude/
+docs/research_dossier.md
+docs/compliance_plan.md
+docs/social_plan.md
+docs/idea_lock.md
+docs/ops/
+docs/weekly_intel/
+docs/weekly_kpi/
+docs/daily/
+customers/
+
+# --- secrets — HARD RULE ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+*credentials*.json
+.vault-token
+.kube/
+kubeconfig*
+
+# --- Node / JS ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.yarn/
+.pnp.*
+dist/
+build/
+out/
+*.tsbuildinfo
+.next/
+.cache/
+
+# --- QVAC / model artifacts (large binaries) ---
+models/*.gguf
+models/*.onnx
+models/*.bin
+models/*.safetensors
+*.lora
+.qvac-cache/
+
+# --- macOS / editors / tooling ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# --- log / coverage / temp ---
+coverage/
+*.log
+tmp/
+.tmp/
