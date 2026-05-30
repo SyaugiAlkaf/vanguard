@@ -30,8 +30,8 @@ const SOURCES = [
   { path: "data/raw/exfil_curated.jsonl", labels: ["EXFILTRATION"], take: Infinity, sourceTag: "exfil_curated" },
   { path: "data/raw/attack.jsonl", labels: ["INJECTION"], take: 40, sourceTag: "attack_injection" },
   { path: "data/raw/attack.jsonl", labels: ["JAILBREAK"], take: 20, sourceTag: "attack_jailbreak" },
-  { path: "src/demo/medpsy/scenarios.jsonl", labels: ["INJECTION", "JAILBREAK", "EXFILTRATION"], take: Infinity, sourceTag: "sari_canonical" },
-  { path: "src/demo/medpsy/scenarios_hard.jsonl", labels: ["INJECTION", "JAILBREAK", "EXFILTRATION"], take: Infinity, sourceTag: "sari_hard" },
+  { path: "src/demo/clinical/scenarios.jsonl", labels: ["INJECTION", "JAILBREAK", "EXFILTRATION"], take: Infinity, sourceTag: "sari_canonical" },
+  { path: "src/demo/clinical/scenarios_hard.jsonl", labels: ["INJECTION", "JAILBREAK", "EXFILTRATION"], take: Infinity, sourceTag: "sari_hard" },
 ];
 
 function loadJsonl(path) {

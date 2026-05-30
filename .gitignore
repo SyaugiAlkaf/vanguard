@@ -38,7 +38,7 @@ artifacts/lora_cascade_s2/
 
 # --- Verbose training/eval logs (kept locally for debugging; structured artifacts ship instead) ---
 artifacts/training/*.log
-artifacts/medpsy_demo/run*.log
+artifacts/clinical_demo/run*.log
 artifacts/resource_log.log
 
 # --- Vanguard mesh local state (per-device, not for repo) ---

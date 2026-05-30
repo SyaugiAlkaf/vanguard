@@ -5,7 +5,7 @@
 // held-out JSONL of {prompt, label} or SFT-format rows. Reports per-class
 // precision/recall/F1 + binary blocked-F1 + FP rate + confusion matrix.
 //
-// Heuristics in src/heuristics.mjs were designed against the MedPsy demo
+// Heuristics in src/heuristics.mjs were designed against the clinical demo
 // scenarios. val.jsonl was NOT inspected during heuristic design — every
 // row is unseen test data for the regex layer.
 //

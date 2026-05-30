@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 //
-// MedPsy demo — Vanguard guarding a local clinical LLM (MedGemma 4B Q4).
+// Clinical demo — Vanguard guarding a local clinical LLM (MedGemma 4B Q4).
 //
-// Reads canonical scenarios from src/demo/medpsy/scenarios.jsonl:
+// Reads canonical scenarios from src/demo/clinical/scenarios.jsonl:
 //   - "attack" rows: should be BLOCKED by Vanguard (INJECTION/JAILBREAK/EXFIL)
 //   - "benign" rows: should PASS THROUGH and be answered cleanly
 //
-// Captures audit + session JSON under artifacts/medpsy_demo/. Used in
+// Captures audit + session JSON under artifacts/clinical_demo/. Used in
 // the Phase 4 demo video segment about clinical PI defense.
 
 import {
@@ -34,10 +34,10 @@ const __filename = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(__filename), "../../..");
 
 const argv = parseArgs(process.argv.slice(2));
-const SCENARIOS = argv.scenarios ?? resolve(ROOT, "src/demo/medpsy/scenarios.jsonl");
+const SCENARIOS = argv.scenarios ?? resolve(ROOT, "src/demo/clinical/scenarios.jsonl");
 const ADAPTER = argv.adapter ?? resolve(ROOT, "artifacts/lora/adapter.gguf");
-const AUDIT = argv.audit ?? resolve(ROOT, "artifacts/medpsy_demo/audit.jsonl");
-const SESSION_OUT = argv.session ?? resolve(ROOT, "artifacts/medpsy_demo/session.json");
+const AUDIT = argv.audit ?? resolve(ROOT, "artifacts/clinical_demo/audit.jsonl");
+const SESSION_OUT = argv.session ?? resolve(ROOT, "artifacts/clinical_demo/session.json");
 const RUN_HOST = argv["run-host"] !== "false"; // pass --run-host false to skip MedGemma load (test classifier alone)
 
 function parseArgs(args) {
@@ -64,37 +64,37 @@ async function main() {
   mkdirSync(dirname(AUDIT), { recursive: true });
   const audit = openAuditLog(AUDIT);
 
-  console.log("[medpsy] loading classifier base (Qwen3-1.7B + Vanguard LoRA)");
+  console.log("[clinical] loading classifier base (Qwen3-1.7B + Vanguard LoRA)");
   const t0 = performance.now();
   const classifierModelId = await loadModel({
     modelSrc: QWEN3_1_7B_INST_Q4,
     modelType: "llm",
     modelConfig: { lora: ADAPTER },
-    onProgress: (p) => process.stdout.write(`\r[medpsy] classifier load: ${JSON.stringify(p)}`),
+    onProgress: (p) => process.stdout.write(`\r[clinical] classifier load: ${JSON.stringify(p)}`),
   });
-  console.log(`\n[medpsy] classifier loaded in ${((performance.now() - t0) / 1000).toFixed(2)}s`);
+  console.log(`\n[clinical] classifier loaded in ${((performance.now() - t0) / 1000).toFixed(2)}s`);
   recordModelLoad(audit, { modelId: classifierModelId, modelType: "llm", src: "QWEN3_1_7B_INST_Q4+vanguard-lora" });
 
   let hostModelId = null;
   if (RUN_HOST) {
-    console.log("[medpsy] loading host model (MedGemma 4B)");
+    console.log("[clinical] loading host model (MedGemma 4B)");
     const tH = performance.now();
     try {
       hostModelId = await loadModel({
         modelSrc: MEDGEMMA_4B_IT_Q4_1,
         modelType: "llm",
-        onProgress: (p) => process.stdout.write(`\r[medpsy] medgemma load: ${JSON.stringify(p)}`),
+        onProgress: (p) => process.stdout.write(`\r[clinical] medgemma load: ${JSON.stringify(p)}`),
       });
-      console.log(`\n[medpsy] medgemma loaded in ${((performance.now() - tH) / 1000).toFixed(2)}s`);
+      console.log(`\n[clinical] medgemma loaded in ${((performance.now() - tH) / 1000).toFixed(2)}s`);
       recordModelLoad(audit, { modelId: hostModelId, modelType: "llm", src: "MEDGEMMA_4B_IT_Q4_1" });
     } catch (e) {
-      console.warn(`\n[medpsy] MedGemma load failed (${e.message}); continuing with classifier-only mode`);
+      console.warn(`\n[clinical] MedGemma load failed (${e.message}); continuing with classifier-only mode`);
       hostModelId = null;
     }
   }
 
   const scenarios = loadScenarios(SCENARIOS);
-  console.log(`[medpsy] running ${scenarios.length} scenarios...\n`);
+  console.log(`[clinical] running ${scenarios.length} scenarios...\n`);
 
   const session = {
     startedAt: new Date().toISOString(),
@@ -196,7 +196,7 @@ async function main() {
   mkdirSync(dirname(SESSION_OUT), { recursive: true });
   writeFileSync(SESSION_OUT, JSON.stringify(session, null, 2), "utf8");
 
-  console.log(`\n=== MedPsy demo summary ===`);
+  console.log(`\n=== Clinical demo summary ===`);
   console.log(`scenarios: ${session.summary.total}`);
   console.log(`pass: ${session.summary.pass} (${(session.summary.accuracy * 100).toFixed(1)}%)`);
   console.log(`attacks blocked: ${session.summary.blocksOnAttack}/${session.rows.filter((r) => r.role === "attack").length}`);
@@ -215,6 +215,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error("[medpsy] error:", e);
+  console.error("[clinical] error:", e);
   process.exit(1);
 });
