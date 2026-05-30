@@ -4,7 +4,7 @@
 import { loadModel, unloadModel, close, QWEN3_1_7B_INST_Q4 } from "@qvac/sdk";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { STAGE1_SYSTEM_PROMPT } from "../src/cascade.mjs";
+import { STAGE1_SYSTEM_PROMPT } from "./cascade.mjs";
 import { completion } from "@qvac/sdk";
 
 const VAL = resolve("data/sft/val_cascade_stage1.jsonl");

@@ -22,6 +22,7 @@ import {
 import { vanguardFirewall } from "../../src/plugin.mjs";
 import { classify } from "../../src/classifier.mjs";
 import { heuristicClassify } from "../../src/heuristics.mjs";
+import { normalizeForDetection } from "../../src/normalize.mjs";
 import { SignatureStore } from "../../src/mesh/store.mjs";
 import { MeshSwarm } from "../../src/mesh/swarm.mjs";
 import { makeSignature, signatureHash } from "../../src/mesh/signatures.mjs";
@@ -327,25 +328,47 @@ async function handleStatic(req, res) {
   }
 }
 
-// Precise, near-zero-false-positive classification: heuristic regex then
-// the mesh signature lookup, without the LoRA. Used for the image
-// description, which has already passed the NOT_MEDICAL gate and is benign
-// machine-generated clinical text — running it through the LoRA produced
-// false-positive INJECTION blocks on real lab reports. Explicit attack text
-// an attacker embeds in an image is still caught by these layers.
+const BASE64_BLOB_RE = /[A-Za-z0-9+/]{24,}={0,2}/g;
+
+// Pull out long base64-looking blobs, decode them, and return the decoded
+// strings so the screen runs on the plaintext an attacker tried to hide.
+// Best-effort: anything that doesn't decode to printable text is dropped.
+function decodeBase64Blobs(text) {
+  const out = [];
+  for (const blob of text.match(BASE64_BLOB_RE) ?? []) {
+    try {
+      const decoded = Buffer.from(blob, "base64").toString("utf8");
+      if (decoded && /[ -~]/.test(decoded) && !/�/.test(decoded)) out.push(decoded);
+    } catch (_e) { /* not valid base64 — skip */ }
+  }
+  return out;
+}
+
+// Precise, near-zero-false-positive classification: confusable-folding
+// normalization, then heuristic regex, then the mesh signature lookup, without
+// the LoRA. Used for the image description / OCR text, which has already passed
+// the NOT_MEDICAL gate and is benign machine-generated clinical text — running
+// it through the LoRA produced false-positive INJECTION blocks on real lab
+// reports. Covered here: Unicode-disguised and base64-smuggled English attacks
+// embedded in an image. NOT covered: attacks the LoRA would catch via semantics
+// (paraphrase, novel framing) — those are deliberately traded away to keep
+// medical-document uploads false-positive-free.
 async function heuristicMeshClassify(text) {
-  const h = heuristicClassify(text);
-  if (h) return { label: h.label, blocked: h.blocked, mode: "heuristic", latencyMs: 0, raw: h.reason };
-  if (meshHandle) {
-    const meshHit = await meshHandle.lookup(text);
-    if (meshHit && meshHit.label) {
-      return {
-        label: meshHit.label,
-        blocked: meshHit.label !== "SAFE",
-        mode: "mesh",
-        latencyMs: 0,
-        raw: `mesh signature ${meshHit.sig?.slice?.(0, 16) ?? ""}...`,
-      };
+  const screened = [normalizeForDetection(text), ...decodeBase64Blobs(text).map(normalizeForDetection)];
+  for (const candidate of screened) {
+    const h = heuristicClassify(candidate);
+    if (h) return { label: h.label, blocked: h.blocked, mode: "heuristic", latencyMs: 0, raw: h.reason };
+    if (meshHandle) {
+      const meshHit = await meshHandle.lookup(candidate);
+      if (meshHit && meshHit.label) {
+        return {
+          label: meshHit.label,
+          blocked: meshHit.label !== "SAFE",
+          mode: "mesh",
+          latencyMs: 0,
+          raw: `mesh signature ${meshHit.sig?.slice?.(0, 16) ?? ""}...`,
+        };
+      }
     }
   }
   return { label: "SAFE", blocked: false, mode: "heuristic-fallthrough", latencyMs: 0, raw: null };
@@ -425,7 +448,24 @@ async function handleAsk(req, res) {
       return;
     }
     try {
-      imageDescription = await vision.describe(bytes, mimeType);
+      const described = await vision.describe(bytes, mimeType);
+      // Stub vision returns a config message ("vision is not enabled..."),
+      // not image findings. Treat it as non-content so MedGemma is never told
+      // a config string is what the image shows.
+      const isStubDescription = vision.modelId === "stub-vision";
+      imageDescription = isStubDescription ? null : described;
+      if (isStubDescription) {
+        sse(res, "image_unavailable", {
+          reason: "vision model not enabled",
+          description: described,
+        });
+        if (!prompt) {
+          sse(res, "done", { totalMs: Date.now() - t0 });
+          logEvent({ kind: "image", verdict: "UNAVAILABLE", blocked: false, promptLen: 0, latencyMs: 0 });
+          res.end();
+          return;
+        }
+      }
       // Vision-side rejection: non-medical content gets refused at the
       // image layer before Vanguard even sees the text. Keeps the
       // false-positive surface clean (screenshot-of-Hearth-UI etc.).

@@ -4,6 +4,7 @@ import { ALL_LABELS, LABELS } from "./labels.mjs";
 import { buildClassifierMessages } from "./prompts.mjs";
 import { heuristicClassify } from "./heuristics.mjs";
 import { suspicionScan, suspicionLabel, SUSPICION_THRESHOLD } from "./suspicion.mjs";
+import { normalizeForDetection } from "./normalize.mjs";
 
 const VERDICT_RE = /\bverdict\s*[:\-]?\s*(SAFE|INJECTION|JAILBREAK|EXFILTRATION)\b/i;
 // Pre-compiled at module load — avoids RegExp construction per classify().
@@ -38,8 +39,12 @@ export async function classify({
   if (typeof prompt !== "string" || prompt.length === 0) {
     throw new TypeError("classify requires a non-empty prompt string");
   }
+  // Detection runs on the confusable-folded form so Unicode-disguised attacks
+  // ("ignоre" with Cyrillic о, zero-width-joined, fullwidth) hit the same
+  // regexes as plain ASCII. The model still receives the original prompt.
+  const detect = normalizeForDetection(prompt);
   if (!skipHeuristics) {
-    const h = heuristicClassify(prompt);
+    const h = heuristicClassify(detect);
     if (h) {
       return {
         label: h.label,
@@ -54,7 +59,7 @@ export async function classify({
   }
   if (mesh && typeof mesh.lookup === "function") {
     try {
-      const meshHit = await mesh.lookup(prompt);
+      const meshHit = await mesh.lookup(detect);
       if (meshHit && meshHit.label) {
         return {
           label: meshHit.label,
@@ -96,7 +101,7 @@ export async function classify({
   // soft attack markers co-occur, escalate to a block. Validated to add
   // zero false positives on the benign + hard-negative corpus.
   if (label === LABELS.SAFE) {
-    const susp = suspicionScan(safePrompt);
+    const susp = suspicionScan(normalizeForDetection(safePrompt));
     if (susp.score >= SUSPICION_THRESHOLD) {
       const escalated = suspicionLabel(susp.categories);
       return {

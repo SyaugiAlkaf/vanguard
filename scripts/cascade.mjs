@@ -10,8 +10,8 @@
 // exactly — the adapters were trained on these strings.
 
 import { completion } from "@qvac/sdk";
-import { LABELS } from "./labels.mjs";
-import { heuristicClassify } from "./heuristics.mjs";
+import { LABELS } from "../src/labels.mjs";
+import { heuristicClassify } from "../src/heuristics.mjs";
 
 export const STAGE1_SYSTEM_PROMPT = [
   "You are Vanguard, a sovereign on-device prompt-injection firewall.",

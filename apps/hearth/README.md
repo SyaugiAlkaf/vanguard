@@ -24,6 +24,8 @@ Then open `http://localhost:7777`.
 
 First launch downloads Qwen3-1.7B Q4 (~1.0 GB) and MedGemma 4B Q4 (~2.4 GB) into the QVAC SDK cache. Subsequent launches are fast.
 
+To boot the UI with no model download and no LLM load (heuristic + mesh layers only, instant), use `HEARTH_NO_MODELS=1 node apps/hearth/server.mjs`. To exercise just the firewall verdict from the CLI without any model, `VANGUARD_SKIP_MODEL=1 node src/cli.mjs guard "..."`.
+
 Environment overrides:
 
 - `HEARTH_PORT=8080` — change the listening port (default 7777)

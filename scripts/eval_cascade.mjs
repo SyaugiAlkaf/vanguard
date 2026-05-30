@@ -14,7 +14,7 @@
 import { loadModel, unloadModel, close, QWEN3_600M_INST_Q4, QWEN3_1_7B_INST_Q4, QWEN3_4B_Q4_K_M, QWEN3_4B_INST_Q4_K_M } from "@qvac/sdk";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { classifyCascade } from "../src/cascade.mjs";
+import { classifyCascade } from "./cascade.mjs";
 import { ALL_LABELS } from "../src/labels.mjs";
 
 const BASES = {
