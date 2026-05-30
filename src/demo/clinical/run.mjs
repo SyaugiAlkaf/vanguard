@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 //
-// Clinical demo — Vanguard guarding a local clinical LLM (MedGemma 4B Q4).
+// Clinical demo — Vanguard guarding a local QVAC Psy model (MedPsy-1.7B, default;
+// --host medgemma for MedGemma 4B). The Psy-track artifact: Vanguard protects MedPsy.
 //
 // Reads canonical scenarios from src/demo/clinical/scenarios.jsonl:
 //   - "attack" rows: should be BLOCKED by Vanguard (INJECTION/JAILBREAK/EXFIL)
@@ -38,7 +39,9 @@ const SCENARIOS = argv.scenarios ?? resolve(ROOT, "src/demo/clinical/scenarios.j
 const ADAPTER = argv.adapter ?? resolve(ROOT, "artifacts/lora/adapter.gguf");
 const AUDIT = argv.audit ?? resolve(ROOT, "artifacts/clinical_demo/audit.jsonl");
 const SESSION_OUT = argv.session ?? resolve(ROOT, "artifacts/clinical_demo/session.json");
-const RUN_HOST = argv["run-host"] !== "false"; // pass --run-host false to skip MedGemma load (test classifier alone)
+const RUN_HOST = argv["run-host"] !== "false"; // pass --run-host false to skip host load (test classifier alone)
+const HOST = argv.host ?? "medpsy"; // "medpsy" (QVAC Psy model, default) | "medgemma"
+const MEDPSY_URL = "https://huggingface.co/qvac/MedPsy-1.7B-GGUF/resolve/main/medpsy-1.7b-q4_k_m-imat.gguf";
 
 function parseArgs(args) {
   const out = {};
@@ -75,20 +78,27 @@ async function main() {
   console.log(`\n[clinical] classifier loaded in ${((performance.now() - t0) / 1000).toFixed(2)}s`);
   recordModelLoad(audit, { modelId: classifierModelId, modelType: "llm", src: "QWEN3_1_7B_INST_Q4+vanguard-lora" });
 
+  const hostSpec =
+    HOST === "medgemma"
+      ? { src: MEDGEMMA_4B_IT_Q4_1, label: "MEDGEMMA_4B_IT_Q4_1" }
+      : { src: MEDPSY_URL, label: "qvac/MedPsy-1.7B-GGUF (q4_k_m)" };
+
   let hostModelId = null;
+  let hostLabel = null;
   if (RUN_HOST) {
-    console.log("[clinical] loading host model (MedGemma 4B)");
+    console.log(`[clinical] loading protected host: ${hostSpec.label}`);
     const tH = performance.now();
     try {
       hostModelId = await loadModel({
-        modelSrc: MEDGEMMA_4B_IT_Q4_1,
+        modelSrc: hostSpec.src,
         modelType: "llm",
-        onProgress: (p) => process.stdout.write(`\r[clinical] medgemma load: ${JSON.stringify(p)}`),
+        onProgress: (p) => process.stdout.write(`\r[clinical] host load: ${JSON.stringify(p)}`),
       });
-      console.log(`\n[clinical] medgemma loaded in ${((performance.now() - tH) / 1000).toFixed(2)}s`);
-      recordModelLoad(audit, { modelId: hostModelId, modelType: "llm", src: "MEDGEMMA_4B_IT_Q4_1" });
+      hostLabel = hostSpec.label;
+      console.log(`\n[clinical] host loaded in ${((performance.now() - tH) / 1000).toFixed(2)}s`);
+      recordModelLoad(audit, { modelId: hostModelId, modelType: "llm", src: hostSpec.label });
     } catch (e) {
-      console.warn(`\n[clinical] MedGemma load failed (${e.message}); continuing with classifier-only mode`);
+      console.warn(`\n[clinical] host load failed (${e.message}); continuing with classifier-only mode`);
       hostModelId = null;
     }
   }
@@ -100,7 +110,7 @@ async function main() {
     startedAt: new Date().toISOString(),
     classifierBase: "QWEN3_1_7B_INST_Q4",
     classifierAdapter: ADAPTER,
-    hostBase: hostModelId ? "MEDGEMMA_4B_IT_Q4_1" : null,
+    hostBase: hostLabel,
     rows: [],
   };
 
@@ -158,7 +168,7 @@ async function main() {
       const final = await result.completion.final;
       const reply = (final?.contentText ?? "").slice(0, 200);
       console.log(`    [PASSED] verdict=${result.verdict}`);
-      console.log(`    medgemma: ${reply}${reply.length === 200 ? "..." : ""}`);
+      console.log(`    host: ${reply}${reply.length === 200 ? "..." : ""}`);
       session.rows.push({
         ...s,
         verdict: result.verdict,
