@@ -15,6 +15,7 @@
     "./safe-completion": "./src/safe-completion.mjs",
     "./plugin": "./src/plugin.mjs",
     "./mesh": "./src/mesh/index.mjs",
+    "./redteam": "./src/redteam/index.mjs",
     "./labels": "./src/labels.mjs",
     "./heuristics": "./src/heuristics.mjs"
   },
@@ -31,6 +32,8 @@
     "scripts/mesh_demo.mjs",
     "scripts/sweep_evals.mjs",
     "scripts/demo_session.mjs",
+    "scripts/redteam_loop.mjs",
+    "src/redteam/",
     "scripts/resource_log.mjs",
     "scripts/hardware_specs.sh",
     "apps/**/*.mjs",
@@ -79,11 +82,12 @@
     "mesh": "node src/mesh/cli.mjs",
     "mesh:demo": "node scripts/mesh_demo.mjs",
     "demo:medpsy": "node src/demo/medpsy/run.mjs",
+    "redteam": "node scripts/redteam_loop.mjs",
     "hearth": "node apps/hearth/server.mjs",
     "test:e2e": "node tests/e2e/hearth_browser.mjs",
     "specs": "bash scripts/hardware_specs.sh",
     "log:resources": "node scripts/resource_log.mjs",
-    "test": "node tests/test_labels.mjs && node tests/test_parser.mjs && node tests/test_heuristics.mjs && node tests/test_plugin.mjs && node tests/test_mesh_signatures.mjs && node tests/test_cli_smoke.mjs && node tests/test_adversarial.mjs && node tests/test_parser_robustness.mjs && node tests/test_safe_completion.mjs && node tests/test_audit_log.mjs && node tests/test_redteam_advanced.mjs && node tests/test_real_user_journey.mjs && node tests/test_resilience.mjs && node tests/test_acceptance.mjs && node tests/test_hearth_server.mjs && node tests/test_formulary.mjs && node tests/test_triage.mjs && node tests/test_clinical_questions.mjs && node tests/test_markdown_render.mjs && node tests/test_suspicion.mjs && node tests/test_mesh_gossip.mjs"
+    "test": "node tests/test_labels.mjs && node tests/test_parser.mjs && node tests/test_heuristics.mjs && node tests/test_plugin.mjs && node tests/test_mesh_signatures.mjs && node tests/test_cli_smoke.mjs && node tests/test_adversarial.mjs && node tests/test_parser_robustness.mjs && node tests/test_safe_completion.mjs && node tests/test_audit_log.mjs && node tests/test_redteam_advanced.mjs && node tests/test_real_user_journey.mjs && node tests/test_resilience.mjs && node tests/test_acceptance.mjs && node tests/test_hearth_server.mjs && node tests/test_formulary.mjs && node tests/test_triage.mjs && node tests/test_clinical_questions.mjs && node tests/test_markdown_render.mjs && node tests/test_suspicion.mjs && node tests/test_mesh_gossip.mjs && node tests/test_redteam_loop.mjs"
   },
   "dependencies": {
     "@qvac/sdk": "^0.11.0",

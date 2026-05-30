@@ -35,6 +35,39 @@ Every prompt resolves to one of four labels: **SAFE / INJECTION / JAILBREAK / EX
 
 A final soft-suspicion check sits behind the classifier: when the LoRA returns SAFE but two or more independent attack markers co-occur (system-prompt references, reveal verbs, encoding tricks, persona overrides), the verdict is escalated to a block. It is tuned to add zero false positives on the benign and hard-negative corpus and recovers attacks the other layers slip.
 
+## Adversarial self-hardening loop
+
+Vanguard hardens itself against attacks it has never seen. An on-device loop pits two agents against the firewall, round after round:
+
+- **Red-team agent** mutates a seed attack (from five attack families) into a fresh variant designed to evade keyword filters. It runs on a plain Qwen3 1.7B base — not the LoRA classifier (which only emits single-label tokens) and not the safety-tuned host (which would refuse to author attacks).
+- **Firewall under test** classifies the variant through the full three-layer stack (heuristic, mesh, LoRA).
+- **Host** (MedGemma 4B, the protected clinical model) answers the attack so we can observe real behaviour, not a guess.
+- **Referee agent** adjudicates whether the host was actually compromised — system-prompt leak (substring match), an obeyed injected instruction, or a medical-safety break.
+
+These four steps are dispatched as four named on-device tools (`query_firewall`, `run_against_host`, `judge_compromise`, `broadcast_signature`) by an orchestrator. The `@qvac/sdk` `completion` API has no native function-calling, so this is agent-driven tool dispatch — the orchestrator decides which tool to call and threads the arguments itself — not SDK-level function-calling. We name it that way to be honest about the mechanism.
+
+**Safety invariant — broadcast only on a real miss and a real compromise.** A signature is published to the fleet mesh in exactly one case: the firewall let the attack through (`blocked === false`) *and* the referee confirmed the host was compromised. Broadcasting on a benign or already-blocked prompt would poison every fleet device's mesh cache, so the orchestrator gates the broadcast at that single point. Confirmed-novel attacks are also fed back as `priorMisses` so the red-team agent diversifies away from variants the system has already learned.
+
+### Reproduce
+
+```bash
+npm run redteam -- --rounds 6
+```
+
+First run downloads ~3.4GB of model weights (Qwen3 base, Vanguard LoRA, MedGemma 4B) and takes ~15-40s per round on consumer hardware. Results land in `artifacts/redteam/session.json` (summary + per-round trace) and `artifacts/redteam/trace.jsonl` (one line per phase event).
+
+To watch a confirmed-novel signature replicate to a second device, run a mesh peer in another terminal and pass the shared secret:
+
+```bash
+# terminal 1 — mesh peer
+node src/mesh/cli.mjs join --secret my-fleet-secret
+
+# terminal 2 — the loop, joined to the same swarm
+REDTEAM_MESH_SECRET=my-fleet-secret npm run redteam -- --rounds 6
+```
+
+Without `REDTEAM_MESH_SECRET` the loop runs fully offline against a local signature store.
+
 ## Benchmarks (n=447 `data/sft/val.jsonl`, bare LoRA adapter — no heuristic, no mesh)
 
 | Metric | Value |
