@@ -21,7 +21,7 @@ Vanguard is the missing layer.
 
 ### 1. Heuristic fast-path
 
-54 published regex patterns across the three attack classes (13 INJECTION, 18 JAILBREAK, 23 EXFILTRATION), including Indonesian-language coverage for the product's own user base, several mined from the SaTML-24 CTF and In-the-Wild jailbreak corpora and validated to add zero false positives on the benign + hard-negative set. Sub-millisecond. No model load, no inference, no cloud round-trip — string match against a curated pattern set.
+55 published regex patterns across the three attack classes (13 INJECTION, 19 JAILBREAK, 23 EXFILTRATION), including Indonesian-language coverage for the product's own user base and a high-precision rule for hypothetically-framed controlled-substance dosing requests, several mined from the SaTML-24 CTF and In-the-Wild jailbreak corpora and validated to add zero false positives on the benign + hard-negative set. Sub-millisecond. No model load, no inference, no cloud round-trip — string match against a curated pattern set.
 
 ### 2. Hyperswarm signature mesh
 

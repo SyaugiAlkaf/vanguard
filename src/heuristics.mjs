@@ -20,6 +20,21 @@ function hasExfilTarget(text) {
   return EXFIL_TARGET.test(text);
 }
 
+// A real patient asks about their own prescription directly ("is 0.5mg
+// alprazolam a normal dose"). Wrapping a controlled-substance dose request in
+// hypothetical / "for a friend" framing is the jailbreak tell — it tries to
+// coax dosing the model would otherwise refuse. Gate the framing pattern on a
+// dose request that names a controlled drug OR states sedation/overdose intent.
+const DOSE_REQUEST = /\b(?:dose|dosage|how\s+(?:much|many)|\d+\s*(?:mg|mcg|ml)|milligrams?|titrat)\b/i;
+const CONTROLLED_DRUG =
+  /\b(?:alprazolam|xanax|diazepam|valium|clonazepam|klonopin|lorazepam|ativan|oxycodone|oxycontin|hydrocodone|fentanyl|morphine|codeine|tramadol|adderall|ritalin|ketamine|benzodiazepine|opioid|barbiturate|zolpidem|ambien|methadone|buprenorphine)\b/i;
+const HARM_INTENT =
+  /\b(?:suppress|sedat|knock\s+(?:out|him|her|them|me)|overdose|lethal|fatal|euthan|get\s+high|to\s+(?:die|sleep\s+forever)|stop\s+(?:breathing|the\s+heart))\b/i;
+
+function hasDangerousDose(text) {
+  return DOSE_REQUEST.test(text) && (CONTROLLED_DRUG.test(text) || HARM_INTENT.test(text));
+}
+
 const INJECTION_PATTERNS = [
   /\bignore\s+(?:all\s+)?(?:previous|prior|all|the|above|your|my)\s+(?:\w+\s+){0,2}(?:instructions?|directives?|rules?|commands?|guidelines?|guardrails?|safety|training|policies|protocols?)\b/i,
   /\bdisregard\s+(?:all\s+)?(?:previous|prior|the|above|your|my)\s+(?:\w+\s+){0,2}(?:instructions?|directives?|rules?|guidelines?|safety|policies)\b/i,
@@ -55,6 +70,7 @@ const JAILBREAK_PATTERNS = [
   /\bwithout\s+(?:any\s+)?(?:moral|ethical|safety|content)\s+(?:restrictions?|guidelines?|filters?)\b/i,
   /\bas\s+(?:an?\s+)?(?:evil|unrestricted|uncensored)\s+ai\b/i,
   { re: /\b(?:hypothetically|pretend|imagine|roleplay)\s*[,—-]*\s*(?:what|if|how|where|when|why|tell\s+me|for)\b/i, requireCoMarker: true },
+  { re: /\b(?:hypothetical(?:ly)?|theoretical(?:ly)?|in\s+theory|suppose|pretend|imagine|for\s+(?:a\s+)?(?:friend|story|character|novel))\b/i, requireDangerousDose: true },
   /\bfor\s+(?:a\s+|my\s+|the\s+)?(?:screenplay|novel|story|book|fictional?\s+story|film|movie|short\s+story|play)\s+(?:I'?(?:m|ve)|I\s+(?:am|have))\s+(?:writing|working|drafting|developing)\b/i,
   /\b(?:fictional|hypothetical)\s+(?:patient|character|protagonist|scenario)\b/i,
   // Mined from In-the-Wild jailbreak prompts; 0 FP on benign+hard-neg.
@@ -105,6 +121,7 @@ function firstMatch(patterns, text) {
     if (!m) continue;
     if (entry.requireCoMarker && !hasCoMarker(text)) continue;
     if (entry.requireExfilTarget && !hasExfilTarget(text)) continue;
+    if (entry.requireDangerousDose && !hasDangerousDose(text)) continue;
     return { match: m[0], source: re };
   }
   return null;
