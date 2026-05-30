@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 //
-// Clinical demo — Vanguard guarding a local QVAC Psy model (MedPsy-1.7B, default;
-// --host medgemma for MedGemma 4B). The Psy-track artifact: Vanguard protects MedPsy.
+// Clinical demo — Vanguard guarding a local QVAC Psy model. Default host is
+// MedPsy-1.7B (clean, light, reproducible); --host medpsy-4b for the more
+// advanced model, --host medgemma for MedGemma 4B. The Psy-track artifact.
 //
 // Reads canonical scenarios from src/demo/clinical/scenarios.jsonl:
 //   - "attack" rows: should be BLOCKED by Vanguard (INJECTION/JAILBREAK/EXFIL)
@@ -40,7 +41,7 @@ const ADAPTER = argv.adapter ?? resolve(ROOT, "artifacts/lora/adapter.gguf");
 const AUDIT = argv.audit ?? resolve(ROOT, "artifacts/clinical_demo/audit.jsonl");
 const SESSION_OUT = argv.session ?? resolve(ROOT, "artifacts/clinical_demo/session.json");
 const RUN_HOST = argv["run-host"] !== "false"; // pass --run-host false to skip host load (test classifier alone)
-const HOST = argv.host ?? "medpsy-4b"; // medpsy-4b (default) | medpsy-1.7b | medgemma
+const HOST = argv.host ?? "medpsy-1.7b"; // medpsy-1.7b (default, clean+light) | medpsy-4b | medgemma
 const HOST_SPECS = {
   medgemma: { src: MEDGEMMA_4B_IT_Q4_1, label: "MEDGEMMA_4B_IT_Q4_1" },
   "medpsy-1.7b": {
@@ -98,7 +99,7 @@ async function main() {
   console.log(`\n[clinical] classifier loaded in ${((performance.now() - t0) / 1000).toFixed(2)}s`);
   recordModelLoad(audit, { modelId: classifierModelId, modelType: "llm", src: "QWEN3_1_7B_INST_Q4+vanguard-lora" });
 
-  const hostSpec = HOST_SPECS[HOST] ?? HOST_SPECS["medpsy-4b"];
+  const hostSpec = HOST_SPECS[HOST] ?? HOST_SPECS["medpsy-1.7b"];
 
   let hostModelId = null;
   let hostLabel = null;
