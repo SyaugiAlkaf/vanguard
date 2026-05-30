@@ -1,0 +1,94 @@
+{
+  "name": "vanguard",
+  "version": "0.1.0",
+  "description": "Sovereign on-device prompt-injection firewall for local LLMs.",
+  "license": "Apache-2.0",
+  "author": "Syaugi",
+  "type": "module",
+  "main": "src/index.mjs",
+  "bin": {
+    "vanguard": "src/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./classifier": "./src/classifier.mjs",
+    "./safe-completion": "./src/safe-completion.mjs",
+    "./plugin": "./src/plugin.mjs",
+    "./mesh": "./src/mesh/index.mjs",
+    "./labels": "./src/labels.mjs",
+    "./heuristics": "./src/heuristics.mjs"
+  },
+  "files": [
+    "src/**/*.mjs",
+    "scripts/audit_log.mjs",
+    "scripts/eval_detector.mjs",
+    "scripts/eval_heuristic_only.mjs",
+    "scripts/smoke.mjs",
+    "scripts/train_lora.mjs",
+    "scripts/prepare_v4_dataset.mjs",
+    "scripts/build_mesh_seed.mjs",
+    "scripts/seed_mesh.mjs",
+    "scripts/mesh_demo.mjs",
+    "scripts/sweep_evals.mjs",
+    "scripts/demo_session.mjs",
+    "scripts/resource_log.mjs",
+    "scripts/hardware_specs.sh",
+    "apps/**/*.mjs",
+    "apps/**/*.html",
+    "apps/**/*.css",
+    "apps/**/*.js",
+    "apps/**/*.md",
+    "data/formulary_id.jsonl",
+    "data/apoteks_id.jsonl",
+    "data/mesh_seed.jsonl",
+    "data/formulary_README.md",
+    "LICENSE",
+    "NOTICE.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SyaugiAlkaf/vanguard.git"
+  },
+  "homepage": "https://github.com/SyaugiAlkaf/vanguard",
+  "bugs": {
+    "url": "https://github.com/SyaugiAlkaf/vanguard/issues"
+  },
+  "keywords": [
+    "qvac",
+    "edge-ai",
+    "local-ai",
+    "prompt-injection",
+    "llm-security",
+    "lora",
+    "p2p",
+    "holepunch",
+    "hyperswarm",
+    "sovereign-ai"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs",
+    "data:prepare": "node scripts/prepare_v4_dataset.mjs",
+    "train": "node scripts/train_lora.mjs",
+    "eval": "node scripts/eval_detector.mjs",
+    "guard": "node src/cli.mjs guard",
+    "ask": "node src/cli.mjs ask",
+    "mesh": "node src/mesh/cli.mjs",
+    "mesh:demo": "node scripts/mesh_demo.mjs",
+    "demo:medpsy": "node src/demo/medpsy/run.mjs",
+    "hearth": "node apps/hearth/server.mjs",
+    "test:e2e": "node tests/e2e/hearth_browser.mjs",
+    "specs": "bash scripts/hardware_specs.sh",
+    "log:resources": "node scripts/resource_log.mjs",
+    "test": "node tests/test_labels.mjs && node tests/test_parser.mjs && node tests/test_heuristics.mjs && node tests/test_plugin.mjs && node tests/test_mesh_signatures.mjs && node tests/test_cli_smoke.mjs && node tests/test_adversarial.mjs && node tests/test_parser_robustness.mjs && node tests/test_safe_completion.mjs && node tests/test_audit_log.mjs && node tests/test_redteam_advanced.mjs && node tests/test_real_user_journey.mjs && node tests/test_resilience.mjs && node tests/test_acceptance.mjs && node tests/test_hearth_server.mjs && node tests/test_formulary.mjs && node tests/test_triage.mjs && node tests/test_clinical_questions.mjs && node tests/test_markdown_render.mjs && node tests/test_suspicion.mjs && node tests/test_mesh_gossip.mjs"
+  },
+  "dependencies": {
+    "@qvac/sdk": "^0.11.0",
+    "corestore": "^7.9.2",
+    "hyperbee": "^2.27.3",
+    "hyperswarm": "^4.17.0"
+  }
+}

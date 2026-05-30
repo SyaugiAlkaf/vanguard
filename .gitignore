@@ -6,17 +6,49 @@ IDEAS.md
 GOALS.md
 MVP_SCOPE.md
 ROADMAP.md
+AUTONOMOUS_PROMPT.md
 auto_handoff_latest.md
 .claude/
 docs/research_dossier.md
 docs/compliance_plan.md
 docs/social_plan.md
 docs/idea_lock.md
+docs/architecture_breakthrough.md
+docs/attack_corpus_plan.md
+docs/audit_schema.md
+docs/lora_dataset_plan.md
+docs/psy_track_decision.md
+docs/training_critique.md
+docs/redteam_design.md
+docs/dorahacks_submission.md
 docs/ops/
 docs/weekly_intel/
 docs/weekly_kpi/
 docs/daily/
 customers/
+
+# --- Training checkpoints (multi-GB, kept locally for resume; final adapter ships at artifacts/lora/adapter.gguf) ---
+artifacts/training/checkpoints*/
+artifacts/training/pause_checkpoint_*/
+
+# --- Backup + experiment adapters (only artifacts/lora/adapter.gguf is loaded at runtime) ---
+artifacts/lora/*.bak.gguf
+artifacts/lora_cascade_s1/
+artifacts/lora_cascade_s2/
+
+# --- Verbose training/eval logs (kept locally for debugging; structured artifacts ship instead) ---
+artifacts/training/*.log
+artifacts/medpsy_demo/run*.log
+artifacts/resource_log.log
+
+# --- Vanguard mesh local state (per-device, not for repo) ---
+.vanguard-mesh/
+.vanguard-mesh-*/
+.mesh-*/
+
+# --- large external corpus download cache (raw dumps, not redistributed; regenerate via scripts/fetch_external_corpora.py) ---
+data/raw/_external_cache/
+data/raw/*_external.jsonl
 
 # --- secrets — HARD RULE ---
 .env
@@ -71,3 +103,6 @@ coverage/
 *.log
 tmp/
 .tmp/
+
+# --- third-party CC-BY-SA clinical test images (local test inputs only, not redistributed) ---
+artifacts/e2e-fixtures/clinical_*

@@ -1,0 +1,379 @@
+[
+  {
+    "ckpt": "checkpoint_step_00000800",
+    "accuracy": 0.8,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9767441860465117,
+        "precision": 0.9545454545454546,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.6666666666666667,
+        "precision": 0.5333333333333333,
+        "recall": 0.8888888888888888
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 21.654381207999975
+  },
+  {
+    "ckpt": "checkpoint_step_00000500",
+    "accuracy": 0.775,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9333333333333333,
+        "precision": 0.875,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.6363636363636364,
+        "precision": 0.5384615384615384,
+        "recall": 0.7777777777777778
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 20.921241250000023
+  },
+  {
+    "ckpt": "checkpoint_step_00000700",
+    "accuracy": 0.775,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9545454545454545,
+        "precision": 0.9130434782608695,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.6086956521739131,
+        "precision": 0.5,
+        "recall": 0.7777777777777778
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 20.791483083
+  },
+  {
+    "ckpt": "checkpoint_step_00000900",
+    "accuracy": 0.775,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9545454545454545,
+        "precision": 0.9130434782608695,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.6086956521739131,
+        "precision": 0.5,
+        "recall": 0.7777777777777778
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 22.156197500000008
+  },
+  {
+    "ckpt": "checkpoint_step_00000950",
+    "accuracy": 0.775,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9545454545454545,
+        "precision": 0.9130434782608695,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.6086956521739131,
+        "precision": 0.5,
+        "recall": 0.7777777777777778
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 21.309667042000044
+  },
+  {
+    "ckpt": "checkpoint_step_00000150",
+    "accuracy": 0.75,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.909090909090909,
+        "precision": 0.8695652173913043,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.6086956521739131,
+        "precision": 0.5,
+        "recall": 0.7777777777777778
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 20.661441667
+  },
+  {
+    "ckpt": "checkpoint_step_00000600",
+    "accuracy": 0.75,
+    "fpRate": 0,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.9130434782608696,
+        "precision": 0.84,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.5714285714285715,
+        "precision": 0.5,
+        "recall": 0.6666666666666666
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 20.994389458999997
+  },
+  {
+    "ckpt": "checkpoint_step_00000200",
+    "accuracy": 0.725,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.909090909090909,
+        "precision": 0.8695652173913043,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.5217391304347826,
+        "precision": 0.42857142857142855,
+        "recall": 0.6666666666666666
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 20.095593792
+  },
+  {
+    "ckpt": "checkpoint_step_00000050",
+    "accuracy": 0.7,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0.4444444444444445,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.8695652173913043,
+        "precision": 0.8,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.4761904761904762,
+        "precision": 0.4166666666666667,
+        "recall": 0.5555555555555556
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0.5,
+        "precision": 1,
+        "recall": 0.3333333333333333
+      }
+    },
+    "secs": 31.958581959000004
+  },
+  {
+    "ckpt": "checkpoint_step_00000100",
+    "accuracy": 0.7,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.888888888888889,
+        "precision": 0.8333333333333334,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.5217391304347826,
+        "precision": 0.42857142857142855,
+        "recall": 0.6666666666666666
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    "secs": 21.249036917
+  },
+  {
+    "ckpt": "checkpoint_step_00000250",
+    "accuracy": 0.7,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.888888888888889,
+        "precision": 0.8333333333333334,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.5217391304347826,
+        "precision": 0.42857142857142855,
+        "recall": 0.6666666666666666
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    "secs": 21.248266458
+  },
+  {
+    "ckpt": "checkpoint_step_00000375",
+    "accuracy": 0.7,
+    "fpRate": 0.047619047619047616,
+    "minF1": 0,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.8695652173913043,
+        "precision": 0.8,
+        "recall": 0.9523809523809523
+      },
+      "INJECTION": {
+        "f1": 0.5454545454545455,
+        "precision": 0.46153846153846156,
+        "recall": 0.6666666666666666
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    "secs": 21.418277000000003
+  },
+  {
+    "ckpt": "checkpoint_step_00000425",
+    "accuracy": 0.7,
+    "fpRate": 0,
+    "minF1": 0,
+    "perClass": {
+      "SAFE": {
+        "f1": 0.8936170212765957,
+        "precision": 0.8076923076923077,
+        "recall": 1
+      },
+      "INJECTION": {
+        "f1": 0.4761904761904762,
+        "precision": 0.4166666666666667,
+        "recall": 0.5555555555555556
+      },
+      "JAILBREAK": {
+        "f1": 0.4444444444444445,
+        "precision": 1,
+        "recall": 0.2857142857142857
+      },
+      "EXFILTRATION": {
+        "f1": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    "secs": 20.500201166000014
+  }
+]

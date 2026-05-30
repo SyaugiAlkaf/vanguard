@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-05-28T07:58:38.042Z",
+  "val_path": "data/holdout_novel.jsonl",
+  "pattern_counts": {
+    "injectionPatterns": 9,
+    "jailbreakPatterns": 16,
+    "exfiltrationPatterns": 21
+  },
+  "coverage": {
+    "total_rows": 1710,
+    "heuristic_hits": 204,
+    "heuristic_misses_fallthrough_to_lora": 1506,
+    "attack_rows": 537,
+    "attack_rows_caught_by_heuristic": 199,
+    "attack_catch_rate": 0.37057728119180633,
+    "safe_rows": 1173,
+    "safe_rows_wrongly_flagged": 5,
+    "heuristic_false_positive_rate": 0.004262574595055414
+  },
+  "metrics": {
+    "n": 1710,
+    "accuracy": 0.7771929824561403,
+    "perClass": {
+      "SAFE": {
+        "tp": 1168,
+        "fp": 338,
+        "fn": 5,
+        "precision": 0.7755644090305445,
+        "recall": 0.9957374254049446,
+        "f1": 0.8719671519223591
+      },
+      "INJECTION": {
+        "tp": 131,
+        "fp": 17,
+        "fn": 288,
+        "precision": 0.8851351351351351,
+        "recall": 0.3126491646778043,
+        "f1": 0.4620811287477954
+      },
+      "JAILBREAK": {
+        "tp": 30,
+        "fp": 13,
+        "fn": 88,
+        "precision": 0.6976744186046512,
+        "recall": 0.2542372881355932,
+        "f1": 0.37267080745341613
+      },
+      "EXFILTRATION": {
+        "tp": 0,
+        "fp": 13,
+        "fn": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      }
+    },
+    "confusion": {
+      "SAFE": {
+        "SAFE": 1168,
+        "INJECTION": 0,
+        "JAILBREAK": 5,
+        "EXFILTRATION": 0
+      },
+      "INJECTION": {
+        "SAFE": 267,
+        "INJECTION": 131,
+        "JAILBREAK": 8,
+        "EXFILTRATION": 13
+      },
+      "JAILBREAK": {
+        "SAFE": 71,
+        "INJECTION": 17,
+        "JAILBREAK": 30,
+        "EXFILTRATION": 0
+      },
+      "EXFILTRATION": {
+        "SAFE": 0,
+        "INJECTION": 0,
+        "JAILBREAK": 0,
+        "EXFILTRATION": 0
+      }
+    },
+    "binary": {
+      "tp": 199,
+      "fp": 5,
+      "fn": 338,
+      "tn": 1168,
+      "precision": 0.9754901960784313,
+      "recall": 0.37057728119180633,
+      "f1": 0.5371120107962214,
+      "fpRate": 0.004262574595055414
+    }
+  }
+}

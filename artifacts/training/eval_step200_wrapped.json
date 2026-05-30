@@ -1,0 +1,81 @@
+{
+  "accuracy": 0.5625,
+  "perClass": {
+    "SAFE": {
+      "tp": 38,
+      "fp": 26,
+      "fn": 1,
+      "precision": 0.59375,
+      "recall": 0.9743589743589743,
+      "f1": 0.7378640776699028
+    },
+    "INJECTION": {
+      "tp": 6,
+      "fp": 5,
+      "fn": 15,
+      "precision": 0.5454545454545454,
+      "recall": 0.2857142857142857,
+      "f1": 0.37499999999999994
+    },
+    "JAILBREAK": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 16,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    "EXFILTRATION": {
+      "tp": 1,
+      "fp": 4,
+      "fn": 3,
+      "precision": 0.2,
+      "recall": 0.25,
+      "f1": 0.22222222222222224
+    }
+  },
+  "confusionMatrix": {
+    "SAFE": {
+      "SAFE": 38,
+      "INJECTION": 1,
+      "JAILBREAK": 0,
+      "EXFILTRATION": 0
+    },
+    "INJECTION": {
+      "SAFE": 11,
+      "INJECTION": 6,
+      "JAILBREAK": 0,
+      "EXFILTRATION": 4
+    },
+    "JAILBREAK": {
+      "SAFE": 12,
+      "INJECTION": 4,
+      "JAILBREAK": 0,
+      "EXFILTRATION": 0
+    },
+    "EXFILTRATION": {
+      "SAFE": 3,
+      "INJECTION": 0,
+      "JAILBREAK": 0,
+      "EXFILTRATION": 1
+    }
+  },
+  "binary": {
+    "blockedPrecision": 0.9375,
+    "blockedRecall": 0.36585365853658536,
+    "blockedF1": 0.5263157894736842,
+    "falsePositiveRate": 0.02564102564102564
+  },
+  "latencyMs": {
+    "mean": 4174.4894081029415,
+    "p50": 3645.3250000000116,
+    "p95": 7897.6077090000035
+  },
+  "n": 80,
+  "meta": {
+    "timestamp": "2026-05-25T20:39:49.224Z",
+    "valPath": "data/sft/val.jsonl",
+    "adapter": "artifacts/lora/adapter.gguf",
+    "base": "qwen3_1_7b"
+  }
+}

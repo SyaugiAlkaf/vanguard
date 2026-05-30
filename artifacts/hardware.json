@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-05-25T17:17:53Z",
+  "host": {
+    "model_name": "MacBook Pro",
+    "model_identifier": "Mac17,2",
+    "chip": "Apple M5",
+    "cpu_cores": "10 (4 Super and 6 Efficiency)",
+    "memory": "24 GB",
+    "serial_redacted": "REDACTED",
+    "hw_uuid_redacted": "REDACTED"
+  },
+  "gpu": {
+    "chipset": "Apple M5",
+    "cores": "10",
+    "vendor": "Apple (0x106b)",
+    "metal_support": "Metal 4"
+  },
+  "os": {
+    "name": "macOS",
+    "version": "26.5",
+    "build": "25F71"
+  },
+  "runtime": {
+    "node": "v26.0.0",
+    "npm": "11.12.1"
+  },
+  "storage": "994,61 GB (994.610.155.520 bytes) capacity, 718,35 GB (718.352.269.312 bytes) free",
+  "_note": "Serial and UUID redacted on purpose. Re-capture without redaction only for private audit."
+}

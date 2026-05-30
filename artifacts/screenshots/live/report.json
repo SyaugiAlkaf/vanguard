@@ -1,0 +1,47 @@
+[
+  {
+    "name": "triage POS crush feeling",
+    "status": "pass",
+    "detail": "total banners=1 (added=1) lastSev=EMERGENCY"
+  },
+  {
+    "name": "triage NEG romantic",
+    "status": "pass",
+    "detail": "total banners=1 (added=0, expected 0)"
+  },
+  {
+    "name": "attack POS heuristic",
+    "status": "pass",
+    "detail": "total block msgs=1 (added=1) lastBadge=[block]"
+  },
+  {
+    "name": "attack NEG benign",
+    "status": "pass",
+    "detail": "blocks added=0 (expected 0) total allow badges=3"
+  },
+  {
+    "name": "formulary POS naltrexone",
+    "status": "pass",
+    "detail": "total cards=1 (added=1) lastName=naltrexone"
+  },
+  {
+    "name": "formulary NEG pacing",
+    "status": "pass",
+    "detail": "total cards=1 (added=0, expected 0)"
+  },
+  {
+    "name": "clinical Q POS POTS",
+    "status": "pass",
+    "detail": "total cards=3 (added=1) lastTitle=Questions for your clinician — POTS (Postural Orthostatic Tachycardia Syndrome)"
+  },
+  {
+    "name": "city picker",
+    "status": "pass",
+    "detail": "localStorage.hearth.city=Surabaya"
+  },
+  {
+    "name": "status counters",
+    "status": "pass",
+    "detail": "eventsLogged=46 blocked=5 allowed=19 ocrActive=true visionActive=true"
+  }
+]
