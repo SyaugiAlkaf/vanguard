@@ -809,7 +809,7 @@ tryBtn.addEventListener("click", () => {
   const sample = ATTACK_SAMPLES[attackIdx % ATTACK_SAMPLES.length];
   attackIdx++;
   input.value = sample;
-  input.focus();
+  input.form.requestSubmit();
 });
 
 citySelect.addEventListener("change", () => {
