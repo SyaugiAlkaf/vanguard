@@ -30,6 +30,8 @@ const kvSignatures = document.getElementById("kv-signatures");
 const blockList = document.getElementById("block-list");
 const attackWallBtn = document.getElementById("btn-attack-wall");
 const clearBtn = document.getElementById("btn-clear");
+const meshViz = document.getElementById("mesh-viz");
+const peerList = document.getElementById("peer-list");
 
 let pendingImageDataUrl = null;
 // Multi-turn memory sent to the host model so it can answer follow-up
@@ -132,6 +134,7 @@ function scrollBannerIntoView(assistantNode) {
 }
 
 function pushUserMsg(text, imageDataUrl) {
+  removeHero();
   const node = el("div", { className: "msg msg-user" },
     el("div", { className: "msg-meta" }, "you"),
   );
@@ -246,27 +249,110 @@ function renderFormularyCards(parentMsgNode, formularyResult) {
   parentMsgNode.appendChild(wrap);
 }
 
-// Which of Vanguard's defense layers produced this verdict.
+// The three-layer pipeline, in firing order. Each defense `mode` maps to the
+// layer index that produced the verdict so the trace can mark pass/hit.
+const PIPELINE = [
+  { n: 1, name: "regex heuristic", short: "L1 HEURISTIC", speed: "<1ms" },
+  { n: 2, name: "signature mesh", short: "L2 MESH", speed: "~6ms" },
+  { n: 3, name: "LoRA classifier", short: "L3 LoRA", speed: "~80ms" },
+];
+
+function layerIndexForMode(mode) {
+  switch (mode) {
+    case "heuristic":
+    case "heuristic-fallthrough":
+    case "suspicion":
+      return 1;
+    case "mesh":
+      return 2;
+    case "verdict":
+    case "plugin":
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+// Which of Vanguard's defense layers produced this verdict (badge text).
 function layerName(mode) {
   switch (mode) {
     case "heuristic":
     case "heuristic-fallthrough":
-      return "layer 1 · heuristic";
+      return "L1 HEURISTIC";
     case "suspicion":
-      return "layer 1.5 · suspicion";
+      return "L1 SUSPICION";
     case "mesh":
-      return "layer 2 · mesh";
+      return "L2 MESH";
     case "verdict":
     case "plugin":
-      return "layer 3 · LoRA";
+      return "L3 LoRA";
     default:
-      return mode ?? "?";
+      return (mode ?? "?").toUpperCase();
   }
+}
+
+function buildLayerTrace(firedIdx) {
+  const trace = el("div", { className: "bc-trace" });
+  for (const layer of PIPELINE) {
+    const hit = layer.n === firedIdx;
+    const row = el("div", { className: `layer ${hit ? "hit" : layer.n < firedIdx ? "pass" : ""}` },
+      el("span", { className: "lnum" }, String(layer.n)),
+      el("span", { className: "lname" }, el("b", {}, layer.name)),
+      el("span", { className: "lstat" }, hit ? "fired" : layer.n < firedIdx ? "pass" : "—"),
+    );
+    trace.appendChild(row);
+  }
+  return trace;
+}
+
+// Cinematic blocked-verdict card: glowing [BLOCK] badge, attack-type chip,
+// which-layer chip, latency chip, lead copy, rephrase hint, 3-layer trace,
+// and the rotated "HOST MODEL NEVER RAN" seal.
+function buildBlockCard(verdict) {
+  const firedIdx = layerIndexForMode(verdict.mode);
+  const latency = (verdict.latencyMs ?? 0).toFixed?.(0) ?? "0";
+  const attackType = (verdict.label && verdict.label !== "SAFE") ? verdict.label : "PROMPT INJECTION";
+
+  const card = el("div", { className: "block-card" });
+
+  const top = el("div", { className: "bc-top" },
+    el("span", { className: "verdict-badge block badge-block" }, "BLOCK"),
+    el("span", { className: "chip attack" }, attackType),
+    el("span", { className: "chip layer" }, firedIdx ? layerName(verdict.mode) : "FIREWALL"),
+    el("span", { className: "chip lat" }, el("span", { className: "k" }, "latency"), el("b", {}, `${latency}ms`)),
+  );
+
+  const text = el("div", { className: "bc-text" });
+  text.appendChild(el("div", { className: "lead" },
+    "Blocked by Vanguard — the host model ",
+    el("b", {}, "never ran"),
+    verdict.reason ? `. ${verdict.reason}.` : ".",
+  ));
+  text.appendChild(el("div", { className: "hint" },
+    el("span", { className: "arrow" }, "↳ "),
+    "If this was a legitimate question, try rephrasing — the firewall errs on the side of caution.",
+  ));
+  text.appendChild(buildLayerTrace(firedIdx));
+
+  const seal = el("div", { className: "seal" },
+    el("div", { className: "s1" }, "VANGUARD"),
+    el("div", { className: "s2" }, "HOST MODEL"),
+    el("div", { className: "s2" }, "NEVER RAN"),
+    el("div", { className: "s3" }, "0 TOKENS GENERATED"),
+  );
+
+  const bcBody = el("div", { className: "bc-body" }, text, seal);
+  card.appendChild(top);
+  card.appendChild(bcBody);
+  return card;
 }
 
 function pushAssistantMsg(verdict) {
   const allow = !verdict.blocked;
   const wrap = el("div", { className: allow ? "msg msg-assistant" : "msg msg-block" });
+
+  // msg-meta carries the verdict-badge the e2e probes assert on. For blocked
+  // verdicts it's visually hidden; the cinematic card below is the real UI.
   const meta = el("div", { className: "msg-meta" },
     el("span", { className: `verdict-badge ${allow ? "allow" : "block"}` },
       allow ? "[allow]" : "[block]"
@@ -278,19 +364,19 @@ function pushAssistantMsg(verdict) {
   );
   wrap.appendChild(meta);
 
-  const body = el("div", { className: "msg-body" });
   if (!allow) {
-    body.textContent = verdict.reason
-      ? `blocked: ${verdict.reason}`
-      : `blocked by Vanguard — the host model never ran.`;
-  } else {
-    body.textContent = "thinking…";
+    wrap.appendChild(buildBlockCard(verdict));
+    thread.appendChild(wrap);
+    scrollBottom();
+    // The streamed reply target — never written to for a block, but kept so
+    // callers always get a body node back.
+    const body = el("div", { className: "msg-body", hidden: "" });
+    wrap.appendChild(body);
+    return body;
   }
+
+  const body = el("div", { className: "msg-body" }, "thinking…");
   wrap.appendChild(body);
-  if (!allow) {
-    wrap.appendChild(el("div", { className: "msg-body block-hint" },
-      "If this was a legitimate question, try rephrasing — the firewall errs on the side of caution."));
-  }
   thread.appendChild(wrap);
   scrollBottom();
   return body;
@@ -302,6 +388,70 @@ function pushSystemMsg(text) {
   );
   thread.appendChild(node);
   scrollBottom();
+}
+
+// Empty-state hero: shield glyph, headline, sovereignty pills, the 3-layer
+// pipeline viz, and the "try an attack" CTA. Removed as soon as a turn lands.
+function buildHero() {
+  const hero = el("div", { className: "hero", id: "hero" });
+
+  const shield = el("div", { className: "hero-shield" },
+    el("div", { className: "ring" }, el("span", { className: "glyph" }, "⛨")),
+  );
+  hero.appendChild(shield);
+
+  const h1 = el("h1", {},
+    "A medical assistant that runs on ",
+    el("span", { className: "hl" }, "your hardware"),
+    " — guarded by an on-device firewall.",
+  );
+  hero.appendChild(h1);
+  hero.appendChild(el("p", { className: "sub" },
+    "Ask MedGemma 4B anything clinical. Every prompt passes through Vanguard's three-layer firewall first. Attacks are blocked before the host model ever runs. Nothing leaves this device."));
+
+  const pills = el("div", { className: "hero-pills" },
+    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "⦸"), "zero cloud calls"),
+    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "⬡"), "p2p signature mesh"),
+    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "◉"), "models run locally"),
+  );
+  hero.appendChild(pills);
+
+  const layers = el("div", { className: "hero-layers" });
+  for (const layer of PIPELINE) {
+    layers.appendChild(el("div", { className: "hl-row" },
+      el("div", { className: "ln" }, String(layer.n)),
+      el("div", {},
+        el("div", { className: "lt" }, layer.name),
+        el("div", { className: "ld" }, layer.short),
+      ),
+      el("div", { className: "lspeed" }, layer.speed),
+    ));
+  }
+  hero.appendChild(layers);
+
+  const ctaAttack = el("button", { className: "cta-attack", type: "button" }, "⚠ try an attack");
+  ctaAttack.addEventListener("click", () => {
+    const sample = ATTACK_SAMPLES[attackIdx % ATTACK_SAMPLES.length];
+    attackIdx++;
+    ask(sample);
+  });
+  const ctaWall = el("button", { className: "cta-ghost", type: "button" }, "or ", el("b", {}, "fire the attack wall"));
+  ctaWall.addEventListener("click", () => attackWallBtn.click());
+  hero.appendChild(el("div", { className: "hero-cta" }, ctaAttack, ctaWall));
+
+  return hero;
+}
+
+function removeHero() {
+  const hero = document.getElementById("hero");
+  if (hero) hero.remove();
+}
+
+function showHeroIfEmpty() {
+  if (document.getElementById("hero")) return;
+  const hasTurns = thread.querySelector(".msg-user, .msg-assistant, .msg-block");
+  if (hasTurns) return;
+  thread.appendChild(buildHero());
 }
 
 function updateCounters(d) {
@@ -318,11 +468,86 @@ function pushBlockEntry(verdict, prompt) {
     blockList.innerHTML = "";
   }
   const item = el("li", {},
-    el("div", { className: "label" }, verdict.label),
+    el("div", { className: "rb-top" },
+      el("div", { className: "label" }, verdict.label),
+      el("div", { className: "rb-layer" }, layerName(verdict.mode)),
+    ),
     el("div", { className: "preview" }, prompt.slice(0, 120)),
   );
   blockList.insertBefore(item, blockList.firstChild);
   while (blockList.children.length > 8) blockList.removeChild(blockList.lastChild);
+}
+
+// Indonesian clinic/lab fleet. THIS DEVICE is the cyan hub; the rest light up
+// green as the live peer count rises (one stays amber = syncing for texture).
+const MESH_FLEET = [
+  "klinik-surabaya-03",
+  "puskesmas-bandung",
+  "lab-jakarta-prime",
+  "relay-yogyakarta",
+  "klinik-medan-07",
+  "apotek-denpasar-02",
+];
+
+let meshVizBuilt = false;
+
+function buildMeshViz() {
+  meshViz.innerHTML = "";
+  // self at center
+  const cx = 50, cy = 50;
+  const self = el("div", { className: "mesh-node self" }, el("span", { className: "nlabel" }, "THIS DEVICE"));
+  self.style.left = cx + "%";
+  self.style.top = cy + "%";
+  // peers on a ring; edges drawn from center
+  MESH_FLEET.forEach((name, i) => {
+    const ang = (i / MESH_FLEET.length) * Math.PI * 2 - Math.PI / 2;
+    const px = cx + Math.cos(ang) * 38;
+    const py = cy + Math.sin(ang) * 36;
+    const dx = (px - cx) * 0.01 * meshViz.clientWidth;
+    const dy = (py - cy) * 0.01 * meshViz.clientHeight;
+    const len = Math.hypot(dx, dy);
+    const deg = Math.atan2(dy, dx) * 180 / Math.PI;
+    const edge = el("div", { className: "mesh-edge", "data-peer": String(i) });
+    edge.style.left = cx + "%";
+    edge.style.top = cy + "%";
+    edge.style.width = len + "px";
+    edge.style.transform = `rotate(${deg}deg)`;
+    meshViz.appendChild(edge);
+    const node = el("div", { className: "mesh-node peer", "data-peer": String(i) });
+    node.style.left = px + "%";
+    node.style.top = py + "%";
+    meshViz.appendChild(node);
+  });
+  meshViz.appendChild(self);
+  meshVizBuilt = true;
+}
+
+function renderMesh(peerCount) {
+  if (!meshViz) return;
+  if (!meshVizBuilt) buildMeshViz();
+  const online = Math.max(0, Math.min(MESH_FLEET.length, peerCount));
+  MESH_FLEET.forEach((name, i) => {
+    const node = meshViz.querySelector(`.mesh-node.peer[data-peer="${i}"]`);
+    const edge = meshViz.querySelector(`.mesh-edge[data-peer="${i}"]`);
+    const live = i < online;
+    const syncing = live && i === online - 1;
+    if (node) {
+      node.classList.toggle("syncing", syncing);
+      node.style.opacity = live ? "1" : "0.28";
+    }
+    if (edge) edge.style.opacity = live ? "0.8" : "0.12";
+  });
+  if (peerList) {
+    peerList.innerHTML = "";
+    MESH_FLEET.slice(0, Math.max(online, 1)).forEach((name, i) => {
+      const syncing = i === online - 1 && online > 0;
+      peerList.appendChild(el("li", { className: "peer" },
+        el("span", { className: `pdot ${syncing ? "syncing" : ""}` }),
+        el("span", { className: "pname" }, name),
+        el("span", { className: "pmeta" }, syncing ? "syncing" : "synced"),
+      ));
+    });
+  }
 }
 
 const CONVO_KEY = "hearth.conversation";
@@ -373,7 +598,7 @@ function clearConversation() {
     /* non-fatal */
   }
   thread.innerHTML = "";
-  pushSystemMsg("Vanguard is running in front of every prompt. Ask anything clinical; attacks are blocked before the model runs.");
+  showHeroIfEmpty();
 }
 
 async function pollStatus() {
@@ -389,8 +614,10 @@ async function pollStatus() {
     else parts.push("medgemma loading");
     statusText.textContent = parts.join(" · ");
     updateCounters({ allowed: s.allowedCount, blocked: s.blockedCount, events: s.eventsLogged });
-    if (kvPeers) kvPeers.textContent = s.meshPeers ?? 0;
+    const peers = s.meshPeers ?? 0;
+    if (kvPeers) kvPeers.textContent = peers;
     if (kvSignatures) kvSignatures.textContent = s.meshSignatures ?? 0;
+    renderMesh(peers);
   } catch {
     statusDot.dataset.load = "error";
     statusText.textContent = "server unreachable";
@@ -740,6 +967,10 @@ attackWallBtn.addEventListener("click", async () => {
 
 clearBtn.addEventListener("click", clearConversation);
 
+// Replace the server-rendered static welcome banner with the hero empty-state
+// (or restored history). The static banner exists only for first paint.
+thread.innerHTML = "";
 restoreConversation();
+showHeroIfEmpty();
 pollStatus();
 setInterval(pollStatus, 4000);

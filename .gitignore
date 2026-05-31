@@ -106,3 +106,6 @@ tmp/
 
 # --- third-party CC-BY-SA clinical test images (local test inputs only, not redistributed) ---
 artifacts/e2e-fixtures/clinical_*
+
+# Claude Design extraction reference (internal, not shipped)
+apps/hearth/_design_ref/

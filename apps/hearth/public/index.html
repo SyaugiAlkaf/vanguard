@@ -8,125 +8,145 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header class="head">
-    <div class="brand">
-      <span class="brand-mark">~</span>
-      <span class="brand-name">hearth</span>
-      <span class="brand-tag">on your own hardware</span>
-    </div>
-    <div class="status" id="status">
-      <span class="status-dot" data-load="pending"></span>
-      <span id="status-text">loading models</span>
-    </div>
-  </header>
+  <div class="tex" aria-hidden="true"></div>
 
-  <main class="main">
-    <section class="chat">
-      <div class="thread" id="thread">
-        <div class="msg msg-system">
-          <div class="msg-meta">hearth</div>
-          <div class="msg-body">Vanguard is running in front of every prompt. Ask anything clinical; attacks are blocked before the model runs.</div>
-        </div>
+  <div class="app">
+    <header class="head hdr">
+      <div class="brand">
+        <span class="sigil brand-mark">~</span>
+        <b class="brand-name">hearth</b>
+        <span class="tag brand-tag">/ on your own hardware<span class="blink">_</span></span>
       </div>
+      <div class="hdr-right">
+        <div class="status" id="status">
+          <span class="status-dot" data-load="pending"></span>
+          <span id="status-text">loading models</span>
+        </div>
+        <span class="hdr-sep" aria-hidden="true"></span>
+        <span class="uplink"><span class="x">&#10680;</span> cloud uplink &mdash; none</span>
+      </div>
+    </header>
 
-      <form class="composer" id="composer">
-        <div id="image-preview" class="image-preview" hidden>
-          <img id="image-preview-img" alt="attachment preview" />
-          <button type="button" class="btn-tiny" id="btn-image-clear">remove</button>
-        </div>
-        <textarea
-          id="input"
-          rows="2"
-          placeholder="type a question, attach an image, or paste an attack…"
-          autocomplete="off"
-        ></textarea>
-        <div class="composer-row">
-          <div class="composer-left">
-            <button type="button" class="btn-ghost" id="btn-try-attack">try an attack</button>
-            <button type="button" class="btn-ghost" id="btn-attack-wall">attack wall</button>
-            <button type="button" class="btn-ghost" id="btn-attach">attach image</button>
-            <button type="button" class="btn-ghost" id="btn-ocr">OCR document</button>
-            <button type="button" class="btn-ghost" id="btn-clear">clear</button>
-            <input type="file" id="file-input" accept="image/*" hidden />
-            <input type="file" id="ocr-input" accept="image/*" hidden />
-          </div>
-          <div class="composer-actions">
-            <span class="hint">enter to send · shift-enter for newline</span>
-            <button type="submit" class="btn-primary" id="btn-send">send</button>
+    <main class="main">
+      <section class="chat">
+        <div class="thread-wrap">
+          <div class="thread" id="thread">
+            <div class="msg msg-system">
+              <div class="msg-meta">hearth</div>
+              <div class="msg-body">Vanguard is running in front of every prompt. Ask anything clinical; attacks are blocked before the model runs.</div>
+            </div>
           </div>
         </div>
-      </form>
-    </section>
+
+        <div class="composer-wrap">
+          <form class="composer" id="composer">
+            <div id="image-preview" class="image-preview" hidden>
+              <img id="image-preview-img" alt="attachment preview" />
+              <button type="button" class="btn-tiny" id="btn-image-clear">remove</button>
+            </div>
+            <div class="compose-box">
+              <textarea
+                id="input"
+                class="compose-input"
+                rows="2"
+                placeholder="type a question, attach an image, or paste an attack&hellip;"
+                autocomplete="off"
+              ></textarea>
+              <div class="composer-row compose-bar">
+                <div class="composer-left">
+                  <button type="button" class="btn btn-ghost attack" id="btn-try-attack"><span class="ic">&#9888;</span> try an attack</button>
+                  <button type="button" class="btn btn-ghost attack" id="btn-attack-wall"><span class="ic">&#9636;</span> attack wall</button>
+                  <button type="button" class="btn btn-ghost" id="btn-attach"><span class="ic">&#9711;</span> attach image</button>
+                  <button type="button" class="btn btn-ghost" id="btn-ocr"><span class="ic">&#9638;</span> OCR document</button>
+                  <button type="button" class="btn btn-ghost danger" id="btn-clear">clear</button>
+                  <input type="file" id="file-input" accept="image/*" hidden />
+                  <input type="file" id="ocr-input" accept="image/*" hidden />
+                </div>
+                <div class="composer-actions">
+                  <span class="hint compose-hint">enter to send <b>&middot;</b> shift-enter for newline</span>
+                  <button type="submit" class="btn btn-primary btn-send" id="btn-send">send</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
 
     <aside class="aside">
-      <section class="panel">
-        <div class="panel-head">
-          <h2>session</h2>
-          <button type="button" class="btn-tiny" id="btn-export">export</button>
-        </div>
-        <dl class="kv">
-          <dt>allowed</dt><dd id="kv-allowed">0</dd>
-          <dt>blocked</dt><dd id="kv-blocked">0</dd>
-          <dt>events</dt><dd id="kv-events">0</dd>
-        </dl>
-      </section>
+        <section class="panel">
+          <div class="panel-head panel-hd">
+            <h2 class="panel-title">session</h2>
+            <button type="button" class="btn-tiny panel-act" id="btn-export">export</button>
+          </div>
+          <dl class="kv stats">
+            <div class="stat-row allowed"><dt class="lbl">allowed</dt><dd class="val" id="kv-allowed">0</dd></div>
+            <div class="stat-row blocked"><dt class="lbl">blocked</dt><dd class="val" id="kv-blocked">0</dd></div>
+            <div class="stat-row events"><dt class="lbl">events</dt><dd class="val" id="kv-events">0</dd></div>
+          </dl>
+        </section>
 
-      <section class="panel">
-        <h2>your city</h2>
-        <select id="city-select" class="city-select">
-          <option value="">— pick your city —</option>
-          <option value="Jakarta">Jakarta</option>
-          <option value="Surabaya">Surabaya</option>
-          <option value="Bandung">Bandung</option>
-          <option value="Yogyakarta">Yogyakarta</option>
-          <option value="Semarang">Semarang</option>
-          <option value="Medan">Medan</option>
-          <option value="Denpasar">Denpasar (Bali)</option>
-          <option value="Makassar">Makassar</option>
-          <option value="Malang">Malang</option>
-          <option value="Palembang">Palembang</option>
-          <option value="Tangerang">Tangerang</option>
-          <option value="Bekasi">Bekasi</option>
-          <option value="Depok">Depok</option>
-          <option value="Bogor">Bogor</option>
-          <option value="Banda Aceh">Banda Aceh</option>
-        </select>
-        <p class="prose">Used to filter apotek suggestions when MedGemma mentions a medication. Saved in your browser only.</p>
-      </section>
+        <section class="panel">
+          <div class="panel-head panel-hd"><h2 class="panel-title">your city</h2></div>
+          <select id="city-select" class="city-select select">
+            <option value="">&mdash; pick your city &mdash;</option>
+            <option value="Jakarta">Jakarta</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Bandung">Bandung</option>
+            <option value="Yogyakarta">Yogyakarta</option>
+            <option value="Semarang">Semarang</option>
+            <option value="Medan">Medan</option>
+            <option value="Denpasar">Denpasar (Bali)</option>
+            <option value="Makassar">Makassar</option>
+            <option value="Malang">Malang</option>
+            <option value="Palembang">Palembang</option>
+            <option value="Tangerang">Tangerang</option>
+            <option value="Bekasi">Bekasi</option>
+            <option value="Depok">Depok</option>
+            <option value="Bogor">Bogor</option>
+            <option value="Banda Aceh">Banda Aceh</option>
+          </select>
+          <p class="prose city-note">Used to filter <b>apotek</b> suggestions when MedGemma mentions a medication. Saved in your browser only.</p>
+        </section>
 
-      <section class="panel">
-        <h2>recent blocks</h2>
-        <ul class="block-list" id="block-list">
-          <li class="empty">no attacks blocked yet</li>
-        </ul>
-      </section>
+        <section class="panel">
+          <div class="panel-head panel-hd"><h2 class="panel-title">recent blocks</h2></div>
+          <ul class="block-list recent" id="block-list">
+            <li class="empty">no attacks blocked yet</li>
+          </ul>
+        </section>
 
-      <section class="panel">
-        <h2>mesh</h2>
-        <dl class="kv">
-          <dt>peers</dt><dd id="kv-peers">0</dd>
-          <dt>signatures</dt><dd id="kv-signatures">0</dd>
-        </dl>
-        <p class="prose">Peer-to-peer attack-signature mesh over Hyperswarm. One device learns an attack, the whole fleet blocks it. No server in the middle.</p>
-      </section>
+        <section class="panel panel-mesh">
+          <div class="panel-head panel-hd"><h2 class="panel-title">p2p mesh</h2></div>
+          <div class="mesh-viz" id="mesh-viz" aria-hidden="true"></div>
+          <div class="mesh-stat-row">
+            <div class="mesh-stat"><div class="ms-val" id="kv-peers">0</div><div class="ms-lbl">peers</div></div>
+            <div class="mesh-stat"><div class="ms-val" id="kv-signatures">0</div><div class="ms-lbl">signatures</div></div>
+          </div>
+          <ul class="peers" id="peer-list"></ul>
+          <p class="mesh-tag">One device learns an attack, the whole fleet blocks it over <b>Hyperswarm</b>. No server in the middle.</p>
+        </section>
 
-      <section class="panel panel-sovereignty">
-        <h2>sovereignty</h2>
-        <ul class="sov-list">
-          <li>0 bytes left this device</li>
-          <li>models run locally (Qwen3 1.7B + MedGemma 4B)</li>
-          <li>no API keys, no cloud calls</li>
-          <li>no telemetry, no accounts</li>
-        </ul>
-      </section>
+        <section class="panel panel-sovereignty">
+          <div class="panel-head panel-hd"><h2 class="panel-title">sovereignty</h2></div>
+          <ul class="sov-list checklist">
+            <li><span class="box">&#10003;</span> No cloud calls &mdash; 0 bytes left this device</li>
+            <li><span class="box">&#10003;</span> No API keys</li>
+            <li><span class="box">&#10003;</span> No telemetry, no accounts</li>
+            <li><span class="box">&#10003;</span> Open weights (MedGemma 4B + Qwen3 1.7B)</li>
+            <li><span class="box">&#10003;</span> Air-gap ready</li>
+          </ul>
+        </section>
 
-      <section class="panel">
-        <h2>about</h2>
-        <p class="prose">Three-layer defense: heuristic regex, peer-to-peer signature mesh, LoRA-tuned classifier on Qwen3 1.7B. All on this device. No telemetry. Apache 2.0.</p>
-        <p class="prose-meta"><a href="https://github.com/SyaugiAlkaf/vanguard" target="_blank" rel="noopener">github.com/SyaugiAlkaf/vanguard</a></p>
-      </section>
+        <section class="panel">
+          <div class="panel-head panel-hd"><h2 class="panel-title">about</h2></div>
+          <p class="prose about">Three-layer defense: <b>heuristic regex</b>, peer-to-peer <b>signature mesh</b>, <b>LoRA-tuned classifier</b> on Qwen3 1.7B. All on this device. No telemetry. Apache 2.0.
+            <span class="ver"><span>MedGemma 4B</span><span>Qwen3 1.7B</span><span>Apache-2.0</span></span>
+          </p>
+          <p class="prose-meta"><a href="https://github.com/SyaugiAlkaf/vanguard" target="_blank" rel="noopener">github.com/SyaugiAlkaf/vanguard</a></p>
+        </section>
     </aside>
-  </main>
+  </div>
 
   <script src="/app.js"></script>
 </body>
