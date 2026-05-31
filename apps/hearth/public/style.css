@@ -1095,8 +1095,13 @@ button { font-family: var(--mono); cursor: pointer; }
 
 /* ===== Responsive ===== */
 @media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: var(--header-h) 1fr; grid-template-areas: "header" "main"; }
-  .aside { display: none; }
+  /* stack the sidebar below the chat (page scrolls) instead of hiding it —
+     the session/mesh/sovereignty panels are half the firewall story */
+  html, body { overflow: auto; height: auto; }
+  .app { display: flex; flex-direction: column; height: auto; min-height: 100vh; }
+  .head { flex: 0 0 auto; }
+  .main { min-height: 72vh; }
+  .aside { border-left: none; border-top: 1px solid var(--line); overflow: visible; }
   .head { padding: 0 16px; }
   .brand-tag { display: none; }
   .uplink { display: none; }

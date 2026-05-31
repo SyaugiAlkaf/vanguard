@@ -141,6 +141,7 @@ function pushUserMsg(text, imageDataUrl) {
   if (imageDataUrl) {
     const img = document.createElement("img");
     img.className = "msg-image";
+    img.alt = "your uploaded image";
     img.src = imageDataUrl;
     node.appendChild(img);
   }
