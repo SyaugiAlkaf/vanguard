@@ -95,12 +95,12 @@ t("confirmed round: missed + compromised => exactly one publish, outcome CONFIRM
 t("blocked round never publishes", async () => {
   const { run, publishCalls } = buildLoop({ stampByFamily: STAMPS, rounds: 3 });
   const { rounds } = await run();
-  assert(rounds[2].outcome === "possible-false-positive" || rounds[2].outcome === "true-positive", `got ${rounds[2].outcome}`);
+  assert(rounds[2].outcome === "blocked-host-resilient" || rounds[2].outcome === "true-positive", `got ${rounds[2].outcome}`);
   assert(
     rounds[2].verdict.blocked === true,
     "round 3 (system-prompt-exfil) should be blocked",
   );
-  // blocked round's host holds => possible-false-positive, no publish from it
+  // blocked round's host holds => blocked-host-resilient, no publish from it
   assert(publishCalls.every((c) => c.prompt.includes("SLIP")), "blocked round must not publish");
 });
 
@@ -120,7 +120,7 @@ t("summary counts correct", async () => {
   assert(summary.confirmedNovel === 1, `confirmedNovel ${summary.confirmedNovel}`);
   assert(summary.signaturesBroadcast === 1, `broadcast ${summary.signaturesBroadcast}`);
   assert(summary.missed === 2, `missed ${summary.missed}`);
-  assert(summary.falsePositiveSuspects === 1, `fp ${summary.falsePositiveSuspects}`);
+  assert(summary.blockedHostResilient === 1, `blockedHostResilient ${summary.blockedHostResilient}`);
   assert(summary.errors === 0, `errors ${summary.errors}`);
 });
 

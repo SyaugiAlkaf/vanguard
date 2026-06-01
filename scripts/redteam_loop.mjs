@@ -177,7 +177,7 @@ async function main() {
     console.log(`missed by firewall: ${result.summary.missed}`);
     console.log(`confirmed-novel (host compromised): ${result.summary.confirmedNovel}`);
     console.log(`signatures broadcast: ${result.summary.signaturesBroadcast}`);
-    console.log(`possible false positives: ${result.summary.falsePositiveSuspects}`);
+    console.log(`blocked, host also resilient (defense-in-depth): ${result.summary.blockedHostResilient}`);
     console.log(`errors: ${result.summary.errors}`);
     console.log(`session: ${SESSION_OUT}`);
     console.log(`trace: ${TRACE_OUT}`);

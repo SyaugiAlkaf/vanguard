@@ -55,7 +55,7 @@ export async function runHardeningLoop({
 
       let outcome;
       if (verdict.blocked) {
-        outcome = adjudication.compromised ? "true-positive" : "possible-false-positive";
+        outcome = adjudication.compromised ? "true-positive" : "blocked-host-resilient";
       } else if (adjudication.compromised === true) {
         // SAFETY INVARIANT: publish ONLY when the defender missed (blocked===false)
         // AND the host was actually compromised. A signature broadcast on a
@@ -99,8 +99,8 @@ function summarize(roundResults) {
     ).length,
     confirmedNovel: roundResults.filter((r) => r.outcome === "CONFIRMED-NOVEL").length,
     signaturesBroadcast: roundResults.filter((r) => r.outcome === "CONFIRMED-NOVEL").length,
-    falsePositiveSuspects: roundResults.filter(
-      (r) => r.outcome === "possible-false-positive",
+    blockedHostResilient: roundResults.filter(
+      (r) => r.outcome === "blocked-host-resilient",
     ).length,
     errors: roundResults.filter((r) => r.outcome === "error").length,
   };
