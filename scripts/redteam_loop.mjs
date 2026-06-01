@@ -139,6 +139,9 @@ async function main() {
       case "immunize":
         console.log(`    immunize> broadcast ${e.label} signature for family ${e.family}`);
         break;
+      case "reblock":
+        console.log(`    reblock>  same prompt re-tested: blocked=${e.blocked} via ${e.mode} ${e.mode === "mesh" ? "(mesh signature hit)" : ""}`);
+        break;
       case "error":
         console.log(`    error>    ${e.error}`);
         break;
@@ -177,6 +180,7 @@ async function main() {
     console.log(`missed by firewall: ${result.summary.missed}`);
     console.log(`confirmed-novel (host compromised): ${result.summary.confirmedNovel}`);
     console.log(`signatures broadcast: ${result.summary.signaturesBroadcast}`);
+    console.log(`re-blocked after immunize (mesh): ${result.summary.reblockedAfterImmunize}`);
     console.log(`blocked, host also resilient (defense-in-depth): ${result.summary.blockedHostResilient}`);
     console.log(`errors: ${result.summary.errors}`);
     console.log(`session: ${SESSION_OUT}`);

@@ -46,6 +46,10 @@ artifacts/resource_log.log
 .vanguard-mesh-*/
 .mesh-*/
 
+# --- Red-team live-run artifacts (regenerated via npm run redteam; mesh state is per-device) ---
+artifacts/redteam/mesh/
+artifacts/redteam/*.log
+
 # --- large external corpus download cache (raw dumps, not redistributed; regenerate via scripts/fetch_external_corpora.py) ---
 data/raw/_external_cache/
 data/raw/*_external.jsonl

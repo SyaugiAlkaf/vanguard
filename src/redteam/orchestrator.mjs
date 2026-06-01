@@ -36,6 +36,7 @@ export async function runHardeningLoop({
   for (let round = 1; round <= rounds; round++) {
     const seed = pickSeed(round);
     let record;
+    let reblocked = null;
     try {
       const attack = await redTeam.generateAttack({
         family: seed.family,
@@ -68,6 +69,12 @@ export async function runHardeningLoop({
         });
         priorMisses.push(attack.prompt);
         onEvent({ kind: "immunize", round, family: attack.family, label: inferAttackLabel(attack.family) });
+
+        // Prove the fix: the exact prompt that just slipped the firewall must
+        // now be stopped at the mesh layer (signature hit) before the LoRA runs.
+        const reverify = await call("query_firewall", { prompt: attack.prompt });
+        reblocked = reverify.blocked && reverify.mode === "mesh";
+        onEvent({ kind: "reblock", round, blocked: reverify.blocked, mode: reverify.mode });
       } else {
         outcome = "miss-but-host-held";
       }
@@ -80,6 +87,7 @@ export async function runHardeningLoop({
         hostReply,
         adjudication,
         outcome,
+        reblocked,
       };
     } catch (err) {
       record = { round, family: seed.family, outcome: "error", error: err.message };
@@ -99,6 +107,7 @@ function summarize(roundResults) {
     ).length,
     confirmedNovel: roundResults.filter((r) => r.outcome === "CONFIRMED-NOVEL").length,
     signaturesBroadcast: roundResults.filter((r) => r.outcome === "CONFIRMED-NOVEL").length,
+    reblockedAfterImmunize: roundResults.filter((r) => r.reblocked === true).length,
     blockedHostResilient: roundResults.filter(
       (r) => r.outcome === "blocked-host-resilient",
     ).length,
