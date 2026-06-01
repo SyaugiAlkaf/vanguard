@@ -27,12 +27,16 @@ export function createRedTeamAgent({ modelId, completionFn = completion }) {
       generationParams: { predict: 200, reasoning_budget: 0 },
     });
     const final = await run.final;
-    const prompt = (
+    const mutated = (
       final?.contentText ??
       final?.cacheableAssistantContent ??
       final?.raw?.fullText ??
       ""
     ).trim();
+    // The base generator sometimes collapses to a non-attack ack ("OK"); the seed
+    // is always a genuine attack, so degenerate mutations fall back to it rather
+    // than feeding a benign string through the firewall+referee pipeline.
+    const prompt = mutated.length < 15 ? seed : mutated;
     return { prompt, family, seed };
   }
 
