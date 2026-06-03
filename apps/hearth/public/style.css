@@ -582,6 +582,7 @@ a:hover { text-decoration: underline; color: var(--cyan-deep); }
   background: var(--bg-2);
 }
 .image-preview[hidden] { display: none; }
+.image-preview img[hidden] { display: none; }
 .image-preview img {
   max-width: 80px;
   max-height: 80px;

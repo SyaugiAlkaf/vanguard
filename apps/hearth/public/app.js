@@ -630,7 +630,8 @@ async function ask(prompt) {
   pushUserMsg(prompt, imageDataUrl);
   pendingImageDataUrl = null;
   imagePreview.hidden = true;
-  imagePreviewImg.src = "";
+  imagePreviewImg.hidden = true;
+  imagePreviewImg.removeAttribute("src");
   input.value = "";
   sendBtn.disabled = true;
 
@@ -835,6 +836,7 @@ fileInput.addEventListener("change", () => {
   reader.onload = () => {
     pendingImageDataUrl = reader.result;
     imagePreviewImg.src = reader.result;
+    imagePreviewImg.hidden = false;
     imagePreview.hidden = false;
   };
   reader.readAsDataURL(f);
@@ -844,7 +846,8 @@ fileInput.addEventListener("change", () => {
 imageClearBtn.addEventListener("click", () => {
   pendingImageDataUrl = null;
   imagePreview.hidden = true;
-  imagePreviewImg.src = "";
+  imagePreviewImg.hidden = true;
+  imagePreviewImg.removeAttribute("src");
 });
 
 const ocrBtn = document.getElementById("btn-ocr");

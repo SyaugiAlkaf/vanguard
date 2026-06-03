@@ -18,12 +18,19 @@ function topicFromSecret(secret) {
 }
 
 export class MeshSwarm {
-  constructor({ store, secret, deviceId }) {
+  constructor({ store, secret, deviceId, bootstrap = null, dht = null }) {
     if (!store) throw new TypeError("store required");
     if (!secret) throw new TypeError("secret required (shared across peers)");
     this.store = store;
     this.secret = secret;
     this.deviceId = deviceId ?? "?";
+    // Optional DHT bootstrap override — point the fleet at a private/local DHT
+    // so an air-gapped or NAT-isolated set of devices forms its own swarm
+    // without the public bootstrap nodes. Default null = public Hyperswarm DHT.
+    this.bootstrap = bootstrap;
+    // Optional pre-built hyperdht node (e.g. firewalled:false for a directly
+    // reachable device on a trusted LAN). Takes precedence over bootstrap.
+    this.dht = dht;
     this.swarm = null;
     this._peers = new Set();
     this._sockets = new Set();
@@ -35,7 +42,8 @@ export class MeshSwarm {
 
   async join() {
     await this.store.open();
-    this.swarm = new Hyperswarm();
+    const swarmOpts = this.dht ? { dht: this.dht } : this.bootstrap ? { bootstrap: this.bootstrap } : undefined;
+    this.swarm = new Hyperswarm(swarmOpts);
     const topic = topicFromSecret(this.secret);
 
     this.swarm.on("connection", (socket, info) => {

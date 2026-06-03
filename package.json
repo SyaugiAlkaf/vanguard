@@ -30,6 +30,7 @@
     "scripts/build_mesh_seed.mjs",
     "scripts/seed_mesh.mjs",
     "scripts/mesh_demo.mjs",
+    "scripts/mesh_p2p_proof.mjs",
     "scripts/sweep_evals.mjs",
     "scripts/demo_session.mjs",
     "scripts/redteam_loop.mjs",
@@ -81,6 +82,7 @@
     "ask": "node src/cli.mjs ask",
     "mesh": "node src/mesh/cli.mjs",
     "mesh:demo": "node scripts/mesh_demo.mjs",
+    "mesh:proof": "node scripts/mesh_p2p_proof.mjs",
     "demo:clinical": "node src/demo/clinical/run.mjs",
     "redteam": "node scripts/redteam_loop.mjs",
     "hearth": "node apps/hearth/server.mjs",
@@ -91,7 +93,7 @@
     "compare:hosts": "node scripts/compare_hosts.mjs"
   },
   "dependencies": {
-    "@qvac/sdk": "^0.11.0",
+    "@qvac/sdk": "0.11.0",
     "corestore": "^7.9.2",
     "hyperbee": "^2.27.3",
     "hyperswarm": "^4.17.0"
