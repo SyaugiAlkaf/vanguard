@@ -1,6 +1,6 @@
 # Vanguard architecture
 
-Vanguard is a sovereign on-device prompt-injection firewall for local large language models. It runs in three concentric layers in front of a host LLM. Every prompt walks through them in order; the cheapest filter that flags an attack wins, and the host model never sees the input.
+Vanguard is a self-hardening immune system for a fleet of your own local-AI devices, and on a single device a sovereign on-device prompt-injection firewall. The defense on each device runs in three concentric layers in front of a host LLM: every prompt walks through them in order, the cheapest filter that flags an attack wins, and the host model never sees the input. The middle layer is a peer-to-peer signature mesh — when one device confirms a genuine compromise it mints a signature and replicates it to the whole fleet, so every other device blocks that attack on first sight. The fleet learns once and remembers everywhere.
 
 ## The three layers
 
