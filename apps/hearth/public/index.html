@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hearth</title>
+  <link rel="stylesheet" href="/beacon/tokens.css" />
+  <link rel="stylesheet" href="/beacon/beacon.css" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -24,6 +26,12 @@
         </div>
         <span class="hdr-sep" aria-hidden="true"></span>
         <span class="uplink"><span class="x">&#10680;</span> cloud uplink &mdash; none</span>
+        <span class="hdr-sep" aria-hidden="true"></span>
+        <div class="bcn-seg bcn-seg-text" id="theme-seg" role="group" aria-label="display theme">
+          <button type="button" data-theme-set="dark" class="is-active" aria-pressed="true">dark</button>
+          <button type="button" data-theme-set="light" aria-pressed="false">light</button>
+          <button type="button" data-theme-set="wall" aria-pressed="false">wall</button>
+        </div>
       </div>
     </header>
 
@@ -56,6 +64,7 @@
                 <div class="composer-left">
                   <button type="button" class="btn btn-ghost attack" id="btn-try-attack"><span class="ic">&#9888;</span> try an attack</button>
                   <button type="button" class="btn btn-ghost attack" id="btn-attack-wall"><span class="ic">&#9636;</span> attack wall</button>
+                  <button type="button" class="btn btn-ghost" id="btn-self-harden"><span class="ic">&#9851;</span> self-hardening</button>
                   <button type="button" class="btn btn-ghost" id="btn-attach"><span class="ic">&#9711;</span> attach image</button>
                   <button type="button" class="btn btn-ghost" id="btn-ocr"><span class="ic">&#9638;</span> OCR document</button>
                   <button type="button" class="btn btn-ghost danger" id="btn-clear">clear</button>
@@ -74,80 +83,95 @@
     </main>
 
     <aside class="aside">
-        <section class="panel">
+        <section class="panel panel-session">
           <div class="panel-head panel-hd">
             <h2 class="panel-title">session</h2>
             <button type="button" class="btn-tiny panel-act" id="btn-export">export</button>
           </div>
-          <dl class="kv stats">
-            <div class="stat-row allowed"><dt class="lbl">allowed</dt><dd class="val" id="kv-allowed">0</dd></div>
-            <div class="stat-row blocked"><dt class="lbl">blocked</dt><dd class="val" id="kv-blocked">0</dd></div>
-            <div class="stat-row events"><dt class="lbl">events</dt><dd class="val" id="kv-events">0</dd></div>
-          </dl>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head panel-hd"><h2 class="panel-title">your city</h2></div>
-          <select id="city-select" class="city-select select">
-            <option value="">&mdash; pick your city &mdash;</option>
-            <option value="Jakarta">Jakarta</option>
-            <option value="Surabaya">Surabaya</option>
-            <option value="Bandung">Bandung</option>
-            <option value="Yogyakarta">Yogyakarta</option>
-            <option value="Semarang">Semarang</option>
-            <option value="Medan">Medan</option>
-            <option value="Denpasar">Denpasar (Bali)</option>
-            <option value="Makassar">Makassar</option>
-            <option value="Malang">Malang</option>
-            <option value="Palembang">Palembang</option>
-            <option value="Tangerang">Tangerang</option>
-            <option value="Bekasi">Bekasi</option>
-            <option value="Depok">Depok</option>
-            <option value="Bogor">Bogor</option>
-            <option value="Banda Aceh">Banda Aceh</option>
-          </select>
-          <p class="prose city-note">Used to filter <b>apotek</b> suggestions when MedGemma mentions a medication. Saved in your browser only.</p>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head panel-hd"><h2 class="panel-title">recent blocks</h2></div>
+          <div class="gauge-row">
+            <div class="gauge allowed">
+              <span class="g-val" id="kv-allowed">0</span>
+              <span class="g-lbl">allowed</span>
+            </div>
+            <div class="gauge blocked">
+              <span class="g-val" id="kv-blocked">0</span>
+              <span class="g-lbl">blocked</span>
+            </div>
+            <div class="gauge events">
+              <span class="g-val" id="kv-events">0</span>
+              <span class="g-lbl">events</span>
+            </div>
+          </div>
           <ul class="block-list recent" id="block-list">
             <li class="empty">no attacks blocked yet</li>
           </ul>
         </section>
 
         <section class="panel panel-mesh">
-          <div class="panel-head panel-hd"><h2 class="panel-title">p2p mesh</h2></div>
+          <div class="panel-head panel-hd">
+            <h2 class="panel-title">p2p mesh</h2>
+            <span class="panel-note">Hyperswarm</span>
+          </div>
           <div class="mesh-viz" id="mesh-viz" aria-hidden="true"></div>
           <div class="mesh-stat-row">
-            <div class="mesh-stat"><div class="ms-val" id="kv-peers">0</div><div class="ms-lbl">peers</div></div>
-            <div class="mesh-stat"><div class="ms-val" id="kv-signatures">0</div><div class="ms-lbl">signatures</div></div>
+            <div class="mesh-stat"><div class="ms-val" id="kv-peers">0</div><div class="ms-lbl">live peers</div></div>
+            <div class="mesh-stat"><div class="ms-val" id="kv-signatures">0</div><div class="ms-lbl" id="sig-label">signatures (seeded)</div></div>
           </div>
           <ul class="peers" id="peer-list"></ul>
-          <p class="mesh-tag">One device learns an attack, the whole fleet blocks it over <b>Hyperswarm</b>. No server in the middle.</p>
+          <p class="mesh-tag">One device learns an attack; the signature propagates peer-to-peer so the next device blocks it before it runs. <b>Cross-device proof:</b> artifacts/mesh/p2p_proof.jsonl.</p>
         </section>
 
-        <section class="panel panel-sovereignty">
-          <div class="panel-head panel-hd"><h2 class="panel-title">sovereignty</h2></div>
-          <ul class="sov-list checklist">
-            <li><span class="box">&#10003;</span> No cloud calls &mdash; 0 bytes left this device</li>
-            <li><span class="box">&#10003;</span> No API keys</li>
-            <li><span class="box">&#10003;</span> No telemetry, no accounts</li>
-            <li><span class="box">&#10003;</span> Open weights (MedGemma 4B + Qwen3 1.7B)</li>
-            <li><span class="box">&#10003;</span> Air-gap ready</li>
+        <section class="panel panel-foot">
+          <ul class="sov-pills">
+            <li>no cloud</li>
+            <li>no keys</li>
+            <li>no telemetry</li>
+            <li>open weights</li>
+            <li>air-gap ready</li>
           </ul>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head panel-hd"><h2 class="panel-title">about</h2></div>
-          <p class="prose about">Three-layer defense: <b>heuristic regex</b>, peer-to-peer <b>signature mesh</b>, <b>LoRA-tuned classifier</b> on Qwen3 1.7B. All on this device. No telemetry. Apache 2.0.
-            <span class="ver"><span>MedGemma 4B</span><span>Qwen3 1.7B</span><span>Apache-2.0</span></span>
-          </p>
-          <p class="prose-meta"><a href="https://github.com/SyaugiAlkaf/vanguard" target="_blank" rel="noopener">github.com/SyaugiAlkaf/vanguard</a></p>
+          <div class="foot-row">
+            <select id="city-select" class="city-select" aria-label="your city (for apotek suggestions)">
+              <option value="">apotek city &mdash; off</option>
+              <option value="Jakarta">Jakarta</option>
+              <option value="Surabaya">Surabaya</option>
+              <option value="Bandung">Bandung</option>
+              <option value="Yogyakarta">Yogyakarta</option>
+              <option value="Semarang">Semarang</option>
+              <option value="Medan">Medan</option>
+              <option value="Denpasar">Denpasar (Bali)</option>
+              <option value="Makassar">Makassar</option>
+              <option value="Malang">Malang</option>
+              <option value="Palembang">Palembang</option>
+              <option value="Tangerang">Tangerang</option>
+              <option value="Bekasi">Bekasi</option>
+              <option value="Depok">Depok</option>
+              <option value="Bogor">Bogor</option>
+              <option value="Banda Aceh">Banda Aceh</option>
+            </select>
+            <a class="foot-link" href="https://github.com/SyaugiAlkaf/vanguard" target="_blank" rel="noopener">source</a>
+          </div>
+          <p class="foot-meta">MedGemma 4B &middot; Qwen3 1.7B &middot; Apache-2.0</p>
         </section>
     </aside>
   </div>
 
+  <div class="sh-overlay" id="sh-overlay" hidden>
+    <div class="sh-panel">
+      <div class="sh-head">
+        <div class="sh-titles">
+          <span class="sh-eyebrow">vanguard</span>
+          <h2 class="sh-title">Self-Hardening Loop</h2>
+        </div>
+        <div class="sh-head-right">
+          <button type="button" class="sh-replay" id="sh-replay" hidden>&#10227; replay</button>
+          <button type="button" class="sh-close" id="sh-close" aria-label="close">&times;</button>
+        </div>
+      </div>
+      <div class="sh-stage" id="sh-stage"></div>
+    </div>
+  </div>
+
+  <script src="/beacon/beacon.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

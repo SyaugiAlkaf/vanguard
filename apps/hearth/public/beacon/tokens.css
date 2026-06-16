@@ -1,0 +1,320 @@
+/* ============================================================================
+   BEACON · tokens.css  —  Tier 0 source-of-truth
+   ----------------------------------------------------------------------------
+   One semantic name set. Values switch per [data-theme=dark|light|wall].
+   Per-app identity is a SINGLE override: <html style="--accent:#38bdf8">.
+   All accent-derived tokens are computed with color-mix() so one override
+   cascades everywhere. Components must reference ONLY these names — never raw
+   hex. That is what makes token drift impossible across every app in the suite.
+
+   beacon version: 1.0.0
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- @font-face
+   Self-hosted only. Vendor the woff2 under beacon/fonts/ (see fonts/README).
+   No CDN, no network. Until the woff2 are present the stacks below fall back
+   to system fonts that approximate the metrics. */
+
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("fonts/ChakraPetch-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("fonts/ChakraPetch-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("fonts/ChakraPetch-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBMPlexMono-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBMPlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("fonts/IBMPlexSans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("fonts/IBMPlexSans-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("fonts/IBMPlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* ============================================================================
+   THEME-INDEPENDENT TOKENS  (type, space, motion, geometry)
+   ========================================================================== */
+:root {
+  /* -- font roles → families. Data is ALWAYS mono + tabular-nums. ---------- */
+  --font-display: "Chakra Petch", "Bahnschrift", "DIN Alternate",
+    "Eurostile", "Oswald", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", "Menlo", "Consolas",
+    "Liberation Mono", monospace;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Helvetica,
+    "Liberation Sans", sans-serif;
+
+  /* -- type scale: 10 / 11 / 12 / 13(base) / 15 / 18 / 24 / 32 ------------- */
+  --fs-micro: 10px;   /* engraved labels — uppercase, 0.16em, display       */
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;      /* base                                                */
+  --fs-15: 15px;
+  --fs-18: 18px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --fs-scale: 1;      /* wall theme bumps this                               */
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-base: 1.5;
+  --lh-data: 1.35;
+
+  --track-label: 0.16em;   /* engraved micro-label tracking                  */
+  --track-display: 0.01em;
+  --track-tight: -0.01em;
+
+  /* -- space: strict 4px grid --------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* -- geometry: machined = radius 0 -------------------------------------- */
+  --radius: 0px;
+  --radius-pill: 999px;
+  --bd-hair: 1px;     /* hairline                                            */
+  --bd-armed: 2px;    /* armed / emphasized                                  */
+
+  /* -- control heights ---------------------------------------------------- */
+  --ctrl-sm: 24px;
+  --ctrl-md: 30px;
+  --ctrl-lg: 38px;
+
+  /* -- motion tokens ------------------------------------------------------ */
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --dur-fast: 90ms;
+  --dur: 160ms;
+  --dur-slow: 320ms;
+  --boot: 500ms;
+
+  /* -- elevation (square, low-spread; no soft web shadows) ---------------- */
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.22);
+  --shadow-2: 0 2px 0 rgba(0,0,0,0.20), 0 10px 28px rgba(0,0,0,0.40);
+  --shadow-pop: 0 18px 60px rgba(0,0,0,0.55);
+}
+
+/* ============================================================================
+   THEME · DARK  (graphite — never pitch black)
+   ========================================================================== */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:          #11141a;
+  --surface:     #161a21;
+  --surface-2:   #1b2028;
+  --surface-3:   #212732;
+  --raised:      #262d39;
+
+  --border:        #2b3340;
+  --border-soft:   #222934;
+  --border-strong: #3a4453;
+
+  --text:      #e7ebf1;   /* 13.6:1 on --bg                                  */
+  --text-dim:  #aab3c0;   /*  7.4:1 on --bg                                  */
+  --muted:     #818d9c;   /*  4.6:1 on --bg — meets AA, ≥ #7a8696 lightness  */
+
+  /* per-app accent — overridden inline per app; amber is the default */
+  --accent:          #e8a820;
+  --accent-dim:      color-mix(in oklab, var(--accent), #05070a 26%);
+  --accent-soft:     color-mix(in oklab, var(--accent) 16%, transparent);
+  --accent-glow:     color-mix(in oklab, var(--accent) 42%, transparent);
+  --accent-contrast: #14110a;   /* text/glyph on an accent fill             */
+  --accent-line:     color-mix(in oklab, var(--accent) 80%, transparent);
+
+  /* status lamps — kept DISTINCT from accent, never reused as brand color   */
+  --success: #34d399;  --success-soft: color-mix(in oklab,#34d399 18%,transparent);  --success-glow: color-mix(in oklab,#34d399 50%,transparent);
+  --warn:    #f5c542;  --warn-soft:    color-mix(in oklab,#f5c542 18%,transparent);  --warn-glow:    color-mix(in oklab,#f5c542 50%,transparent);
+  --error:   #f1564a;  --error-soft:   color-mix(in oklab,#f1564a 18%,transparent);  --error-glow:   color-mix(in oklab,#f1564a 50%,transparent);
+  --info:    #57b6f2;  --info-soft:    color-mix(in oklab,#57b6f2 18%,transparent);  --info-glow:    color-mix(in oklab,#57b6f2 50%,transparent);
+  --neutral: #8a96a4;  --neutral-soft: color-mix(in oklab,#8a96a4 18%,transparent);  --neutral-glow: color-mix(in oklab,#8a96a4 40%,transparent);
+  --high:    #f5854a;  --high-soft:    color-mix(in oklab,#f5854a 18%,transparent);  --high-glow:    color-mix(in oklab,#f5854a 50%,transparent);
+
+  --terminal-bg: #0b0e13;
+  --terminal-fg: #ccd5e0;
+  --terminal-dim: #5d6675;
+  --input-bg: #0d1219;          /* inset machined field (dark) */
+
+  --focus-ring: color-mix(in oklab, var(--accent) 70%, #ffffff 0%);
+  --scrim: rgba(6, 8, 12, 0.66);
+  --grid-line: rgba(255,255,255,0.03);
+}
+
+/* ============================================================================
+   THEME · LIGHT  (warm broken-white — never #fff)
+   ========================================================================== */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:          #e8e4db;
+  --surface:     #f1eee7;
+  --surface-2:   #ded9cf;
+  --surface-3:   #d2ccc0;
+  --raised:      #f6f3ec;
+
+  --border:        #c5beb0;
+  --border-soft:   #d6d0c4;
+  --border-strong: #a59d8b;
+
+  --text:      #201d17;   /* 12.9:1 on --bg                                  */
+  --text-dim:  #4f4a3f;   /*  7.3:1 on --bg                                  */
+  --muted:     #645e51;   /*  4.7:1 on --bg — AA                             */
+
+  --accent:          #e8a820;
+  --accent-dim:      color-mix(in oklab, var(--accent), #1a1304 30%);
+  --accent-soft:     color-mix(in oklab, var(--accent) 20%, transparent);
+  --accent-glow:     color-mix(in oklab, var(--accent) 38%, transparent);
+  --accent-contrast: #14110a;
+  --accent-line:     color-mix(in oklab, var(--accent) 78%, transparent);
+
+  /* lamps darkened for AA on a light surface */
+  --success: #157f55;  --success-soft: color-mix(in oklab,#157f55 14%,transparent);  --success-glow: color-mix(in oklab,#157f55 32%,transparent);
+  --warn:    #9a6b07;  --warn-soft:    color-mix(in oklab,#9a6b07 14%,transparent);  --warn-glow:    color-mix(in oklab,#9a6b07 30%,transparent);
+  --error:   #c23128;  --error-soft:   color-mix(in oklab,#c23128 14%,transparent);  --error-glow:   color-mix(in oklab,#c23128 32%,transparent);
+  --info:    #1f6fb0;  --info-soft:    color-mix(in oklab,#1f6fb0 14%,transparent);  --info-glow:    color-mix(in oklab,#1f6fb0 30%,transparent);
+  --neutral: #5f6873;  --neutral-soft: color-mix(in oklab,#5f6873 14%,transparent);  --neutral-glow: color-mix(in oklab,#5f6873 26%,transparent);
+  --high:    #b85a16;  --high-soft:    color-mix(in oklab,#b85a16 14%,transparent);  --high-glow:    color-mix(in oklab,#b85a16 30%,transparent);
+
+  /* terminals stay dark in light theme — operators read logs on graphite */
+  /* consoles + radar follow the theme: light in light mode, graphite in dark/wall */
+  --terminal-bg: #f3f0e8;
+  --terminal-fg: #2a2620;
+  --terminal-dim: #8c8474;
+  --input-bg: #fbf8f2;          /* light field — never a dark box in light mode */
+
+  --focus-ring: color-mix(in oklab, var(--accent), #2a2206 18%);
+  --scrim: rgba(40, 36, 28, 0.40);
+  --grid-line: rgba(40,34,20,0.05);
+
+  --shadow-1: 0 1px 0 rgba(60,52,34,0.10), 0 2px 6px rgba(60,52,34,0.12);
+  --shadow-2: 0 2px 0 rgba(60,52,34,0.10), 0 12px 28px rgba(60,52,34,0.20);
+  --shadow-pop: 0 20px 60px rgba(40,34,20,0.32);
+}
+
+/* ============================================================================
+   THEME · WALL  (true black, max contrast, big type — NOC TV / critical only)
+   ========================================================================== */
+[data-theme="wall"] {
+  color-scheme: dark;
+  --fs-scale: 1.18;
+
+  --bg:          #000000;
+  --surface:     #060809;
+  --surface-2:   #0b0e12;
+  --surface-3:   #11151a;
+  --raised:      #141a20;
+
+  --border:        #232a33;
+  --border-soft:   #161c23;
+  --border-strong: #39434f;
+
+  --text:      #f6f9fc;
+  --text-dim:  #c4ccd6;
+  --muted:     #93a0af;
+
+  --accent:          #e8a820;
+  --accent-dim:      color-mix(in oklab, var(--accent), #000 18%);
+  --accent-soft:     color-mix(in oklab, var(--accent) 18%, transparent);
+  --accent-glow:     color-mix(in oklab, var(--accent) 55%, transparent);
+  --accent-contrast: #0a0700;
+  --accent-line:     var(--accent);
+
+  /* lamps brightened + more glow for across-the-room legibility */
+  --success: #3ef0a8;  --success-soft: color-mix(in oklab,#3ef0a8 20%,transparent);  --success-glow: color-mix(in oklab,#3ef0a8 60%,transparent);
+  --warn:    #ffd24a;  --warn-soft:    color-mix(in oklab,#ffd24a 20%,transparent);  --warn-glow:    color-mix(in oklab,#ffd24a 60%,transparent);
+  --error:   #ff5b4d;  --error-soft:   color-mix(in oklab,#ff5b4d 20%,transparent);  --error-glow:   color-mix(in oklab,#ff5b4d 64%,transparent);
+  --info:    #61c2ff;  --info-soft:    color-mix(in oklab,#61c2ff 20%,transparent);  --info-glow:    color-mix(in oklab,#61c2ff 60%,transparent);
+  --neutral: #95a3b3;  --neutral-soft: color-mix(in oklab,#95a3b3 20%,transparent);  --neutral-glow: color-mix(in oklab,#95a3b3 48%,transparent);
+  --high:    #ff924f;  --high-soft:    color-mix(in oklab,#ff924f 20%,transparent);  --high-glow:    color-mix(in oklab,#ff924f 60%,transparent);
+
+  --terminal-bg: #000000;
+  --terminal-fg: #dbe4ee;
+  --terminal-dim: #5f6b7a;
+  --input-bg: #04060a;
+
+  --focus-ring: var(--accent);
+  --scrim: rgba(0, 0, 0, 0.80);
+  --grid-line: rgba(255,255,255,0.05);
+}
+
+/* ============================================================================
+   STATUS / SEVERITY MODEL  —  one status language for the whole suite.
+   Apply with data attributes; these map a domain word → a lamp token.
+   Components read --st-color / --st-soft / --st-glow, never a raw lamp.
+   ----------------------------------------------------------------------------
+     severity   critical → error · high → high · medium → warn · low → info · info → neutral
+     run-state  queued → neutral · running → info(live) · done → success · failed → error · cancelled → muted
+     liveness   connecting → warn(live) · connected → success · reconnecting → high(live) · offline → error
+   ========================================================================== */
+[data-severity="critical"],[data-state="failed"],[data-live="offline"] { --st-color: var(--error);   --st-soft: var(--error-soft);   --st-glow: var(--error-glow);   }
+[data-severity="high"],    [data-live="reconnecting"]                 { --st-color: var(--high);    --st-soft: var(--high-soft);    --st-glow: var(--high-glow);    --st-live: 1; }
+[data-severity="medium"],  [data-live="connecting"]                   { --st-color: var(--warn);    --st-soft: var(--warn-soft);    --st-glow: var(--warn-glow);    }
+[data-live="connecting"]                                              { --st-live: 1; }
+[data-severity="low"],     [data-state="running"]                     { --st-color: var(--info);    --st-soft: var(--info-soft);    --st-glow: var(--info-glow);    }
+[data-state="running"]                                                { --st-live: 1; }
+[data-severity="info"],    [data-state="queued"]                      { --st-color: var(--neutral); --st-soft: var(--neutral-soft); --st-glow: var(--neutral-glow); }
+[data-state="done"],       [data-live="connected"]                    { --st-color: var(--success); --st-soft: var(--success-soft); --st-glow: var(--success-glow); }
+[data-state="cancelled"]                                              { --st-color: var(--muted);   --st-soft: var(--neutral-soft); --st-glow: transparent; }
+
+/* ============================================================================
+   MOTION · keyframes  (referenced by beacon.css)
+   ========================================================================== */
+@keyframes boot-in     { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes rail-in     { from { opacity:0; transform: translateX(-10px); } to { opacity:1; transform:none; } }
+@keyframes arm-breathe { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 3px var(--accent-soft); } }
+@keyframes lamp-pulse  { 0%,100% { box-shadow: 0 0 0 0 var(--st-glow, var(--accent-glow)); } 50% { box-shadow: 0 0 0 4px transparent; filter: brightness(1.35); } }
+@keyframes shimmer     { 0% { background-position: -160% 0; } 100% { background-position: 260% 0; } }
+@keyframes sweep       { to { transform: rotate(360deg); } }
+@keyframes bump        { 0% { transform: translateY(0); } 35% { transform: translateY(-2px); } 100% { transform: translateY(0); } }
+@keyframes radar       { to { transform: rotate(360deg); } }
+@keyframes caret       { 50% { opacity: 0; } }
+
+/* ============================================================================
+   REDUCED MOTION  —  mandatory. Neutralizes ALL animation/transition.
+   Ships in the core; every app inherits it.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

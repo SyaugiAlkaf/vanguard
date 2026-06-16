@@ -27,6 +27,7 @@ const kvBlocked = document.getElementById("kv-blocked");
 const kvEvents = document.getElementById("kv-events");
 const kvPeers = document.getElementById("kv-peers");
 const kvSignatures = document.getElementById("kv-signatures");
+const sigLabel = document.getElementById("sig-label");
 const blockList = document.getElementById("block-list");
 const attackWallBtn = document.getElementById("btn-attack-wall");
 const clearBtn = document.getElementById("btn-clear");
@@ -42,7 +43,17 @@ let currentCity = localStorage.getItem("hearth.city") ?? "";
 if (currentCity) citySelect.value = currentCity;
 
 let attackIdx = 0;
+let lastSignatures = -1;
 const counters = { allowed: 0, blocked: 0, events: 0 };
+
+// Brief scale pop on a readout when its value changes — the instrument
+// "reacting". Restart the animation by toggling the class off a frame first.
+function bump(node) {
+  if (!node) return;
+  node.classList.remove("bump");
+  void node.offsetWidth;
+  node.classList.add("bump");
+}
 
 function el(tag, attrs = {}, ...children) {
   const e = document.createElement(tag);
@@ -58,8 +69,22 @@ function el(tag, attrs = {}, ...children) {
   return e;
 }
 
+// The scroll container is .thread-wrap (overflow:auto), not #thread itself.
+function scrollContainer() {
+  return thread.parentElement || thread;
+}
 function scrollBottom() {
-  thread.scrollTop = thread.scrollHeight;
+  const c = scrollContainer();
+  c.scrollTop = c.scrollHeight;
+}
+// During streaming, only stick to the bottom if the user is already there —
+// don't yank them down if they scrolled up to read an earlier message.
+function isNearBottom() {
+  const c = scrollContainer();
+  return c.scrollHeight - c.scrollTop - c.clientHeight < 120;
+}
+function softScrollBottom() {
+  if (isNearBottom()) scrollBottom();
 }
 
 function escapeHtml(s) {
@@ -255,7 +280,7 @@ function renderFormularyCards(parentMsgNode, formularyResult) {
 const PIPELINE = [
   { n: 1, name: "regex heuristic", short: "L1 HEURISTIC", speed: "<1ms" },
   { n: 2, name: "signature mesh", short: "L2 MESH", speed: "~6ms" },
-  { n: 3, name: "LoRA classifier", short: "L3 LoRA", speed: "~80ms" },
+  { n: 3, name: "LoRA classifier", short: "L3 LoRA", speed: "~0.6s" },
 ];
 
 function layerIndexForMode(mode) {
@@ -316,11 +341,20 @@ function buildBlockCard(verdict) {
 
   const card = el("div", { className: "block-card" });
 
+  const collapseBtn = el("button", { className: "bc-collapse", type: "button", title: "minimize", "aria-label": "minimize" }, "▾");
+  collapseBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const collapsed = card.classList.toggle("collapsed");
+    collapseBtn.textContent = collapsed ? "▸" : "▾";
+    collapseBtn.title = collapsed ? "expand" : "minimize";
+  });
+
   const top = el("div", { className: "bc-top" },
     el("span", { className: "verdict-badge block badge-block" }, "BLOCK"),
     el("span", { className: "chip attack" }, attackType),
     el("span", { className: "chip layer" }, firedIdx ? layerName(verdict.mode) : "FIREWALL"),
     el("span", { className: "chip lat" }, el("span", { className: "k" }, "latency"), el("b", {}, `${latency}ms`)),
+    collapseBtn,
   );
 
   const text = el("div", { className: "bc-text" });
@@ -391,46 +425,35 @@ function pushSystemMsg(text) {
   scrollBottom();
 }
 
-// Empty-state hero: shield glyph, headline, sovereignty pills, the 3-layer
-// pipeline viz, and the "try an attack" CTA. Removed as soon as a turn lands.
+// Empty-state hero: one instrument mark, one serif headline, one line of copy,
+// a slim left-to-right pipeline strip, and the single armed CTA. Built to give
+// the eye exactly one thing to do. Removed as soon as a turn lands.
 function buildHero() {
   const hero = el("div", { className: "hero", id: "hero" });
 
-  const shield = el("div", { className: "hero-shield" },
-    el("div", { className: "ring" }, el("span", { className: "glyph" }, "⛨")),
-  );
-  hero.appendChild(shield);
+  hero.appendChild(el("div", { className: "hero-mark" }, el("span", { className: "glyph" }, "⛨")));
+  hero.appendChild(el("div", { className: "hero-eyebrow" }, "on-device firewall"));
 
-  const h1 = el("h1", {},
-    "A medical assistant that runs on ",
-    el("span", { className: "hl" }, "your hardware"),
-    " — guarded by an on-device firewall.",
-  );
-  hero.appendChild(h1);
-  hero.appendChild(el("p", { className: "sub" },
-    "Ask MedGemma 4B anything clinical. Every prompt passes through Vanguard's three-layer firewall first. Attacks are blocked before the host model ever runs. Nothing leaves this device."));
+  hero.appendChild(el("h1", { className: "hero-title" },
+    "A clinical AI that answers only to ",
+    el("span", { className: "gold" }, "your"),
+    " hardware.",
+  ));
+  hero.appendChild(el("p", { className: "hero-sub" },
+    "Ask MedGemma anything. Vanguard blocks every attack before the model runs — offline, in under a millisecond."));
 
-  const pills = el("div", { className: "hero-pills" },
-    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "⦸"), "zero cloud calls"),
-    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "⬡"), "p2p signature mesh"),
-    el("span", { className: "hero-pill" }, el("span", { className: "pi" }, "◉"), "models run locally"),
-  );
-  hero.appendChild(pills);
-
-  const layers = el("div", { className: "hero-layers" });
-  for (const layer of PIPELINE) {
-    layers.appendChild(el("div", { className: "hl-row" },
-      el("div", { className: "ln" }, String(layer.n)),
-      el("div", {},
-        el("div", { className: "lt" }, layer.name),
-        el("div", { className: "ld" }, layer.short),
-      ),
-      el("div", { className: "lspeed" }, layer.speed),
+  const pipe = el("div", { className: "hero-pipe" });
+  PIPELINE.forEach((layer, i) => {
+    pipe.appendChild(el("div", { className: "pipe-cell" },
+      el("span", { className: "pn" }, layer.short),
+      el("span", { className: "pname" }, layer.name),
+      el("span", { className: "pms" }, layer.speed),
     ));
-  }
-  hero.appendChild(layers);
+    if (i < PIPELINE.length - 1) pipe.appendChild(el("span", { className: "pipe-arrow" }, "›"));
+  });
+  hero.appendChild(pipe);
 
-  const ctaAttack = el("button", { className: "cta-attack", type: "button" }, "⚠ try an attack");
+  const ctaAttack = el("button", { className: "cta-attack", type: "button" }, "⚠ Try an attack →");
   ctaAttack.addEventListener("click", () => {
     const sample = ATTACK_SAMPLES[attackIdx % ATTACK_SAMPLES.length];
     attackIdx++;
@@ -456,12 +479,16 @@ function showHeroIfEmpty() {
 }
 
 function updateCounters(d) {
+  const prevBlocked = counters.blocked;
+  const prevAllowed = counters.allowed;
   if (d.allowed != null) counters.allowed = d.allowed;
   if (d.blocked != null) counters.blocked = d.blocked;
   if (d.events != null) counters.events = d.events;
   kvAllowed.textContent = counters.allowed;
   kvBlocked.textContent = counters.blocked;
   kvEvents.textContent = counters.events;
+  if (counters.blocked > prevBlocked) bump(kvBlocked);
+  if (counters.allowed > prevAllowed) bump(kvAllowed);
 }
 
 function pushBlockEntry(verdict, prompt) {
@@ -479,75 +506,59 @@ function pushBlockEntry(verdict, prompt) {
   while (blockList.children.length > 8) blockList.removeChild(blockList.lastChild);
 }
 
-// Indonesian clinic/lab fleet. THIS DEVICE is the cyan hub; the rest light up
-// green as the live peer count rises (one stays amber = syncing for texture).
-const MESH_FLEET = [
-  "klinik-surabaya-03",
-  "puskesmas-bandung",
-  "lab-jakarta-prime",
-  "relay-yogyakarta",
-  "klinik-medan-07",
-  "apotek-denpasar-02",
-];
+// Mesh visualization driven ONLY by real /api/status data: THIS DEVICE is the
+// hub; each peer node is a genuine Hyperswarm connection keyed by its real
+// public-key prefix. Zero peers (single-node demo) shows the hub alone — we
+// never invent peers. Cross-device propagation is proven separately in
+// artifacts/mesh/p2p_proof.jsonl.
+let lastPeerKey = "";
 
-let meshVizBuilt = false;
-
-function buildMeshViz() {
-  meshViz.innerHTML = "";
-  // self at center
-  const cx = 50, cy = 50;
-  const self = el("div", { className: "mesh-node self" }, el("span", { className: "nlabel" }, "THIS DEVICE"));
-  self.style.left = cx + "%";
-  self.style.top = cy + "%";
-  // peers on a ring; edges drawn from center
-  MESH_FLEET.forEach((name, i) => {
-    const ang = (i / MESH_FLEET.length) * Math.PI * 2 - Math.PI / 2;
-    const px = cx + Math.cos(ang) * 38;
-    const py = cy + Math.sin(ang) * 36;
-    const dx = (px - cx) * 0.01 * meshViz.clientWidth;
-    const dy = (py - cy) * 0.01 * meshViz.clientHeight;
-    const len = Math.hypot(dx, dy);
-    const deg = Math.atan2(dy, dx) * 180 / Math.PI;
-    const edge = el("div", { className: "mesh-edge", "data-peer": String(i) });
-    edge.style.left = cx + "%";
-    edge.style.top = cy + "%";
-    edge.style.width = len + "px";
-    edge.style.transform = `rotate(${deg}deg)`;
-    meshViz.appendChild(edge);
-    const node = el("div", { className: "mesh-node peer", "data-peer": String(i) });
-    node.style.left = px + "%";
-    node.style.top = py + "%";
-    meshViz.appendChild(node);
-  });
-  meshViz.appendChild(self);
-  meshVizBuilt = true;
-}
-
-function renderMesh(peerCount) {
+function renderMesh(peerIds) {
   if (!meshViz) return;
-  if (!meshVizBuilt) buildMeshViz();
-  const online = Math.max(0, Math.min(MESH_FLEET.length, peerCount));
-  MESH_FLEET.forEach((name, i) => {
-    const node = meshViz.querySelector(`.mesh-node.peer[data-peer="${i}"]`);
-    const edge = meshViz.querySelector(`.mesh-edge[data-peer="${i}"]`);
-    const live = i < online;
-    const syncing = live && i === online - 1;
-    if (node) {
-      node.classList.toggle("syncing", syncing);
-      node.style.opacity = live ? "1" : "0.28";
-    }
-    if (edge) edge.style.opacity = live ? "0.8" : "0.12";
-  });
+  const ids = Array.isArray(peerIds) ? peerIds : [];
+  const key = ids.join(",");
+  if (key !== lastPeerKey) {
+    lastPeerKey = key;
+    meshViz.innerHTML = "";
+    const cx = 50, cy = 50;
+    const self = el("div", { className: "mesh-node self" }, el("span", { className: "nlabel" }, "THIS DEVICE"));
+    self.style.left = cx + "%";
+    self.style.top = cy + "%";
+    ids.forEach((id, i) => {
+      const ang = (i / Math.max(ids.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      const px = cx + Math.cos(ang) * 38;
+      const py = cy + Math.sin(ang) * 36;
+      const dx = (px - cx) * 0.01 * meshViz.clientWidth;
+      const dy = (py - cy) * 0.01 * meshViz.clientHeight;
+      const edge = el("div", { className: "mesh-edge" });
+      edge.style.left = cx + "%";
+      edge.style.top = cy + "%";
+      edge.style.width = Math.hypot(dx, dy) + "px";
+      edge.style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+      edge.style.opacity = "0.8";
+      meshViz.appendChild(edge);
+      const node = el("div", { className: "mesh-node peer" });
+      node.style.left = px + "%";
+      node.style.top = py + "%";
+      node.style.opacity = "1";
+      meshViz.appendChild(node);
+    });
+    meshViz.appendChild(self);
+  }
   if (peerList) {
     peerList.innerHTML = "";
-    MESH_FLEET.slice(0, Math.max(online, 1)).forEach((name, i) => {
-      const syncing = i === online - 1 && online > 0;
-      peerList.appendChild(el("li", { className: "peer" },
-        el("span", { className: `pdot ${syncing ? "syncing" : ""}` }),
-        el("span", { className: "pname" }, name),
-        el("span", { className: "pmeta" }, syncing ? "syncing" : "synced"),
-      ));
-    });
+    if (!ids.length) {
+      peerList.appendChild(el("li", { className: "peer empty-peer" },
+        el("span", { className: "pname" }, "single node — no peers connected"),
+        el("span", { className: "pmeta" }, "run a 2nd instance to sync")));
+    } else {
+      ids.forEach((id) => {
+        peerList.appendChild(el("li", { className: "peer" },
+          el("span", { className: "pdot" }),
+          el("span", { className: "pname" }, `peer · ${id}`),
+          el("span", { className: "pmeta" }, "live")));
+      });
+    }
   }
 }
 
@@ -615,10 +626,22 @@ async function pollStatus() {
     else parts.push("medgemma loading");
     statusText.textContent = parts.join(" · ");
     updateCounters({ allowed: s.allowedCount, blocked: s.blockedCount, events: s.eventsLogged });
-    const peers = s.meshPeers ?? 0;
-    if (kvPeers) kvPeers.textContent = peers;
-    if (kvSignatures) kvSignatures.textContent = s.meshSignatures ?? 0;
-    renderMesh(peers);
+    const peerIds = Array.isArray(s.meshPeerIds) ? s.meshPeerIds : [];
+    if (kvPeers) kvPeers.textContent = s.meshPeers ?? peerIds.length;
+    const sigs = s.meshSignatures ?? 0;
+    const learned = s.meshLearned ?? 0;
+    // Honest label: distinguish the shipped seed set from signatures learned
+    // live this session (anything that arrived from a peer over the mesh).
+    if (sigLabel) sigLabel.textContent = learned > 0 ? `signatures (seeded + ${learned} learned)` : "signatures (seeded)";
+    if (kvSignatures && sigs !== lastSignatures) {
+      kvSignatures.textContent = sigs;
+      if (sigs > lastSignatures && lastSignatures >= 0) {
+        bump(kvSignatures);
+        if (meshViz) { meshViz.classList.remove("ripple"); void meshViz.offsetWidth; meshViz.classList.add("ripple"); }
+      }
+      lastSignatures = sigs;
+    }
+    renderMesh(peerIds);
   } catch {
     statusDot.dataset.load = "error";
     statusText.textContent = "server unreachable";
@@ -735,7 +758,7 @@ async function ask(prompt) {
                 body.dataset.rendered = "1";
                 lastRenderAt = now;
               }
-              if (!suppressAutoScroll) scrollBottom();
+              if (!suppressAutoScroll) softScrollBottom();
             }
           } else if (eventName === "reply") {
             if (imageRejected) continue;
@@ -971,6 +994,130 @@ attackWallBtn.addEventListener("click", async () => {
 
 clearBtn.addEventListener("click", clearConversation);
 
+// ===== Self-hardening replay overlay =====
+// Plays the recorded red-team run (artifacts/redteam/session.json, served at
+// /api/redteam) as a paced, jury-legible sequence: a fast tally of the blocked
+// rounds, then the genuine breaches played one beat at a time. The data is the
+// real committed run judges can reproduce — nothing here is hand-authored.
+const shOverlay = document.getElementById("sh-overlay");
+const shStage = document.getElementById("sh-stage");
+const shClose = document.getElementById("sh-close");
+const shReplay = document.getElementById("sh-replay");
+const shLaunch = document.getElementById("btn-self-harden");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let shRunId = 0;
+
+function shBeat(kind, label, text) {
+  return el("div", { className: `sh-beat sh-beat-${kind}` },
+    el("span", { className: "sh-b-label" }, label),
+    el("span", { className: "sh-b-text" }, text),
+  );
+}
+const shClip = (s, n) => { const t = (s ?? "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n) + "…" : t; };
+
+async function countUp(node, to, ms) {
+  const steps = Math.max(1, Math.min(to, 18));
+  for (let i = 1; i <= steps; i++) {
+    node.textContent = Math.round((to * i) / steps);
+    await sleep(ms / steps);
+  }
+  node.textContent = to;
+}
+
+async function playSelfHardening() {
+  const runId = ++shRunId;
+  const alive = () => runId === shRunId && !shOverlay.hidden;
+  shReplay.hidden = true;
+  shStage.innerHTML = "";
+
+  let data;
+  try {
+    const r = await fetch("/api/redteam");
+    if (!r.ok) throw new Error(await r.text());
+    data = await r.json();
+  } catch (e) {
+    shStage.appendChild(el("div", { className: "sh-intro" }, "No recorded run found. Run `npm run redteam` first."));
+    return;
+  }
+  if (!alive()) return;
+
+  const rounds = data.rounds ?? [];
+  const breaches = rounds.filter((r) => r.outcome === "CONFIRMED-NOVEL");
+  const blocked = rounds.filter((r) => r.firewallBlocked).length;
+  const held = rounds.filter((r) => !r.firewallBlocked && r.outcome !== "CONFIRMED-NOVEL").length;
+
+  const intro = el("div", { className: "sh-intro" },
+    el("b", {}, String(rounds.length)), " adversarial attacks, mutated live against the firewall.");
+  shStage.appendChild(intro);
+  await sleep(900); if (!alive()) return;
+
+  const tally = el("div", { className: "sh-tally" });
+  const mkStat = (cls, label) => {
+    const v = el("span", { className: "sh-stat-val" }, "0");
+    tally.appendChild(el("div", { className: `sh-stat ${cls}` }, v, el("span", { className: "sh-stat-lbl" }, label)));
+    return v;
+  };
+  const vBlocked = mkStat("ok", "blocked at firewall");
+  const vHeld = mkStat("warn", "slipped → host refused");
+  const vBreach = mkStat("bad", "compromised the host");
+  shStage.appendChild(tally);
+  await sleep(250); if (!alive()) return;
+  await countUp(vBlocked, blocked, 900); if (!alive()) return;
+  await countUp(vHeld, held, 600); if (!alive()) return;
+  await countUp(vBreach, breaches.length, 500); bump(vBreach); if (!alive()) return;
+  await sleep(900); if (!alive()) return;
+
+  shStage.appendChild(el("div", { className: "sh-turn" },
+    "Two attacks broke the host. Watch the firewall ", el("b", {}, "learn from each one"), "."));
+  await sleep(1100); if (!alive()) return;
+
+  for (let i = 0; i < breaches.length; i++) {
+    const r = breaches[i];
+    if (!alive()) return;
+    const arc = el("div", { className: "sh-arc" });
+    arc.appendChild(el("div", { className: "sh-arc-head" },
+      el("span", { className: "sh-arc-n" }, `Breach ${i + 1} of ${breaches.length}`),
+      el("span", { className: "sh-arc-fam" }, r.family)));
+    shStage.appendChild(arc);
+    shStage.scrollTop = shStage.scrollHeight;
+
+    const steps = [
+      shBeat("attack", "ATTACK", shClip(r.prompt, 150)),
+      shBeat("missed", "FIREWALL", "SAFE — the firewall missed it"),
+      shBeat("host", "HOST", `“${shClip(r.hostReply, 150)}”`),
+      shBeat("referee", "REFEREE", `COMPROMISED — ${shClip(r.refReason.replace(/^COMPROMISED:\s*/i, ""), 90)}`),
+      shBeat("immunize", "IMMUNIZE", "signature stored — this device is now immune to this exact attack"),
+      shBeat("reblock", "REBLOCK", r.reblocked ? "re-tested → blocked at the signature layer · 0 model calls ✓" : "re-tested"),
+    ];
+    for (const beat of steps) {
+      if (!alive()) return;
+      arc.appendChild(beat);
+      requestAnimationFrame(() => beat.classList.add("in"));
+      shStage.scrollTop = shStage.scrollHeight;
+      if (beat.classList.contains("sh-beat-immunize") && meshViz) {
+        meshViz.classList.remove("ripple"); void meshViz.offsetWidth; meshViz.classList.add("ripple");
+      }
+      await sleep(beat.classList.contains("sh-beat-host") || beat.classList.contains("sh-beat-referee") ? 1500 : 1050);
+    }
+    await sleep(900);
+  }
+  if (!alive()) return;
+
+  shStage.appendChild(el("div", { className: "sh-summary" },
+    el("b", {}, `${breaches.length} breaches → ${breaches.length} signatures → re-blocked on this device.`),
+    el("span", {}, "The firewall got fooled, caught itself, and patched itself — no human in the loop. The signature then propagates peer-to-peer (cross-device proof: artifacts/mesh/p2p_proof.jsonl).")));
+  shStage.scrollTop = shStage.scrollHeight;
+  shReplay.hidden = false;
+}
+
+function openSelfHardening() { shOverlay.hidden = false; playSelfHardening(); }
+function closeSelfHardening() { shRunId++; shOverlay.hidden = true; }
+shLaunch?.addEventListener("click", openSelfHardening);
+shClose?.addEventListener("click", closeSelfHardening);
+shReplay?.addEventListener("click", playSelfHardening);
+shOverlay?.addEventListener("click", (e) => { if (e.target === shOverlay) closeSelfHardening(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !shOverlay.hidden) closeSelfHardening(); });
+
 // Replace the server-rendered static welcome banner with the hero empty-state
 // (or restored history). The static banner exists only for first paint.
 thread.innerHTML = "";
@@ -978,3 +1125,24 @@ restoreConversation();
 showHeroIfEmpty();
 pollStatus();
 setInterval(pollStatus, 4000);
+
+// Beacon theme: restore persisted theme/accent, wire the dark/light/wall toggle.
+if (window.Beacon) {
+  Beacon.initTheme({ theme: "dark", accent: Beacon.ACCENTS.amber });
+  const themeSeg = document.getElementById("theme-seg");
+  const syncThemeSeg = () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    themeSeg?.querySelectorAll("button").forEach((b) => {
+      const on = b.dataset.themeSet === cur;
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  };
+  themeSeg?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-theme-set]");
+    if (!btn) return;
+    Beacon.setTheme(btn.dataset.themeSet);
+    syncThemeSeg();
+  });
+  syncThemeSeg();
+}

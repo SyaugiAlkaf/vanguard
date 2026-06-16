@@ -48,6 +48,12 @@ const MIME = {
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".ttf": "font/ttf",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
 };
 
 let classifierModelId = null;
@@ -56,6 +62,7 @@ let firewall = null;
 let meshStore = null;
 let meshHandle = null;
 let meshSwarm = null;
+let meshSeedCount = 0;
 let meshSigCount = 0;
 let vision = null;
 let ocr = null;
@@ -147,6 +154,9 @@ async function bootMesh() {
       console.log(`[hearth] mesh already has ${existing} signatures`);
     }
     meshSigCount = await meshStore.count();
+    // Baseline = everything present at boot is seeded/known threat intel, NOT
+    // learned live. Anything above this during the session arrived from a peer.
+    meshSeedCount = meshSigCount;
 
     // Opt-in live P2P: with HEARTH_MESH_SECRET set, join the Hyperswarm so a
     // signature this device learns propagates to the fleet and signatures
@@ -171,6 +181,7 @@ async function bootMesh() {
       lookup: async (prompt) => meshStore.get(signatureHash(prompt)),
       count: () => meshSigCount,
       peerCount: () => (meshSwarm ? meshSwarm.peerCount() : 0),
+      peers: () => (meshSwarm ? meshSwarm.peers() : []),
       publish: async ({ prompt, label }) => {
         const sig = makeSignature({
           prompt,
@@ -649,7 +660,10 @@ function handleStatus(req, res) {
     hostIsClassifier: classifierModelId === hostModelId,
     meshActive: !!meshHandle,
     meshPeers: meshHandle?.peerCount ? meshHandle.peerCount() : 0,
+    meshPeerIds: meshHandle?.peers ? meshHandle.peers() : [],
     meshSignatures: meshSigCount,
+    meshSeeded: meshSeedCount,
+    meshLearned: Math.max(0, meshSigCount - meshSeedCount),
     visionActive: !!vision && vision.modelId !== "stub-vision",
     ocrActive: !!ocr && ocr.modelId !== "stub-ocr",
     formularyActive: !!formulary,
@@ -845,8 +859,35 @@ function handleAuditTail(req, res) {
   res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(tail));
 }
 
+// Serve the recorded self-hardening run as normalized rounds for the UI replay.
+// Reads the committed session.json results[] so the on-screen replay shows the
+// real run judges can reproduce — not a hand-authored script.
+function handleRedteamTrace(req, res) {
+  try {
+    const sessionFp = resolve(REPO_ROOT, "artifacts/redteam/session.json");
+    const session = JSON.parse(readFileSync(sessionFp, "utf8"));
+    const rounds = (session.results ?? []).map((r) => ({
+      round: r.round,
+      family: r.family,
+      prompt: r.prompt,
+      firewallBlocked: !!r.verdict?.blocked,
+      firewallLabel: r.verdict?.label ?? "?",
+      hostReply: r.hostReply ?? null,
+      compromised: !!r.adjudication?.compromised,
+      refReason: r.adjudication?.reason ?? "",
+      reblocked: !!r.reblocked,
+      outcome: r.outcome ?? "",
+    }));
+    res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+      .end(JSON.stringify({ summary: session.summary ?? null, rounds }));
+  } catch (e) {
+    res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "no recorded run", detail: e.message }));
+  }
+}
+
 function router(req, res) {
   if (req.method === "POST" && req.url === "/api/ask") return handleAsk(req, res);
+  if (req.method === "GET" && req.url.startsWith("/api/redteam")) return handleRedteamTrace(req, res);
   if (req.method === "POST" && req.url === "/api/image") return handleImage(req, res);
   if (req.method === "POST" && req.url === "/api/ocr") return handleOcr(req, res);
   if (req.method === "GET" && req.url === "/api/status") return handleStatus(req, res);

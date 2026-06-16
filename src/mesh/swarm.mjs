@@ -128,6 +128,10 @@ export class MeshSwarm {
     return this._peers.size;
   }
 
+  peers() {
+    return [...this._peers];
+  }
+
   async leave() {
     for (const socket of this._sockets) {
       try {
